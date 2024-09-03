@@ -58,9 +58,9 @@ export default function Home() {
     }
 
     ws.onmessage = (event: MessageEvent) => {
-      console.log("message received");
-      let received_data = JSON.parse(event.data).message;
-      setWSData(received_data.slice(0, 100));
+      console.log(`message received: ${event.data}`);
+      // let received_data = JSON.parse(event.data).message;
+      // setWSData(received_data.slice(0, 100));
       // setVideoSrc(videoRef, received_data);
     };
 
