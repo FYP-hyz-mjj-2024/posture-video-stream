@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Image from "next/image";
 import { Inter } from "next/font/google";
+// import * as WebSocket from 'ws';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,6 +22,28 @@ function base64ToBlob(base64: string, contentType: string) {
 
   return new Blob(byteArrs, { type: contentType });
 }
+const setVideoSrc = (videoRef: React.RefObject<HTMLVideoElement>, received_data: string) => {
+  if (!videoRef.current) {
+    return;
+  }
+
+  try {
+
+    const base64Data = received_data;
+    const contentType = 'image/jpeg';
+
+    const blob = base64ToBlob(base64Data, contentType);
+    const url = URL.createObjectURL(blob);
+
+    videoRef.current.srcObject = null;
+    videoRef.current.src = url;
+    videoRef.current.play();
+  } catch (e) {
+    // setWSMessage(`${e}`);
+    console.log(e);
+  }
+}
+
 
 export default function Home() {
   const videoRef = React.createRef<HTMLVideoElement>();
@@ -30,41 +53,28 @@ export default function Home() {
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:8080');
     ws.onopen = () => {
-      console.log("WebSocket Connection Successful.");
+      // console.log("WebSocket Connection Successful.");
+      setWSMessage(`Connection Established.`);
     }
 
-    ws.onmessage = (event) => {
-      if (!videoRef.current)
-        return;
-
-      let received_data = event.data;
+    ws.onmessage = (event: any) => {
+      console.log("message received");
+      let received_data = JSON.parse(event.data).message;
       setWSData(received_data.slice(0, 100));
-
-      try {
-        const data = JSON.parse(event.data);
-        if (!data.message) {
-          setWSMessage(data);
-          return;
-        }
-        setWSMessage(data);
-
-        const base64Data = data.message;
-        const contentType = 'image/jpeg';
-
-        const blob = base64ToBlob(base64Data, contentType);
-        const url = URL.createObjectURL(blob);
-
-        videoRef.current.srcObject = null;
-        videoRef.current.src = url;
-        videoRef.current.play();
-      } catch (e) {
-        setWSMessage(`${e}`);
-      }
+      // setVideoSrc(videoRef, received_data);
     };
 
-    return () => {
-      ws.close();
-    };
+    ws.onerror = function (e: any) {
+      setWSMessage(`Error occurred: ${e}`);
+    }
+
+    ws.onclose = function () {
+      setWSMessage("Connection closed.");
+    }
+
+    // return () => {
+    //   ws.close();
+    // };
   }, []);
 
   return (
