@@ -57,7 +57,7 @@ export default function Home() {
       setWSMessage(`Connection Established.`);
     }
 
-    ws.onmessage = (event: any) => {
+    ws.onmessage = (event: MessageEvent) => {
       console.log("message received");
       let received_data = JSON.parse(event.data).message;
       setWSData(received_data.slice(0, 100));
