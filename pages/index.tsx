@@ -21,15 +21,33 @@ const extractBase64EncodedString = (wsOnMessageEvent: MessageEvent<any>) => {
   }
 };
 
+const codes = {
+  "Connected": {
+    "Prompt": "Connection Established.",
+    "Color": "#00FF00",
+    "VideoPrompt": "The connection is established, but there is no video source."
+  },
+  "Closed": {
+    "Prompt": "Connection Closed. Try re-freshing to re-connect.",
+    "Color": "#FF0000",
+    "VideoPrompt": "The connection is closed, therefore we can't receive any video source."
+  },
+  "Error": {
+    "Prompt": "Error Occurred. Please refresh.",
+    "Color": "#FFFF00",
+    "VideoPrompt": "There is an error in the connection."
+  }
+}
+
 export default function Home() {
   const [ws_message, setWSMessage] = useState("Idle");
+  const [ws_code, setWSCode] = useState<"Connected" | "Closed" | "Error">("Closed");
   const [vidBase64, setVidBase64] = useState("");
 
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:8080');
     ws.onopen = () => {
-      console.log("WebSocket Connection Established.");
-      setWSMessage(`Connection Established.`);
+      setWSCode("Connected");
     }
 
     ws.onmessage = (event: MessageEvent) => {
@@ -39,11 +57,12 @@ export default function Home() {
     };
 
     ws.onerror = function (e: any) {
-      setWSMessage(`Error occurred: ${e}`);
+      setWSCode("Error");
+      console.log(e);
     }
 
     ws.onclose = function () {
-      setWSMessage("Connection closed. Try refreshing to re-connect.");
+      setWSCode("Closed");
     }
   }, []);
 
@@ -53,12 +72,15 @@ export default function Home() {
     >
       <div>Smartphone Usage Detection</div>
       <div>Console:</div>
-      <div>{ws_message}</div>
+      <div className={`flex flex-row items-center gap-2 p-2`}>
+        <div className={`w-2 h-2 bg-[${codes[ws_code].Color}] rounded-full`} />
+        <div>{codes[ws_code].Prompt}</div>
+      </div>
 
       {vidBase64 == "" ? (
         <div className={`flex items-center justify-center w-[640px] h-[480px] border border-white`}>
           <div className={`mx-auto`}>
-            The connection is established, but there is no video source.
+            {codes[ws_code].VideoPrompt}
           </div>
         </div>
       ) : (
