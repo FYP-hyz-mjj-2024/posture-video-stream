@@ -1,67 +1,41 @@
 import React, { useEffect, useState } from 'react';
-import Image from "next/image";
 import { Inter } from "next/font/google";
-// import * as WebSocket from 'ws';
 
 const inter = Inter({ subsets: ["latin"] });
 
-function base64ToBlob(base64: string, contentType: string) {
-  const byteChars = atob(base64);
-  const byteArrs = [];
-
-  for (let offset = 0; offset < byteChars.length; offset += 1024) {
-    const slice = byteChars.slice(offset, offset + 1024);
-    const byteNums = new Array(slice.length);
-    for (let i = 0; i < slice.length; i++) {
-      byteNums[i] = slice.charCodeAt(i);
-    }
-
-    const byteArr = new Uint8Array(byteNums);
-    byteArrs.push(byteArr);
-  }
-
-  return new Blob(byteArrs, { type: contentType });
-}
-const setVideoSrc = (videoRef: React.RefObject<HTMLVideoElement>, received_data: string) => {
-  if (!videoRef.current) {
-    return;
-  }
-
+/**
+ * Given a websocket onMessage event, extract the base64 string.
+ * @param wsOnMessageEvent 
+ * @returns 
+ */
+const extractBase64EncodedString = (wsOnMessageEvent: MessageEvent<any>) => {
   try {
-
-    const base64Data = received_data;
-    const contentType = 'image/jpeg';
-
-    const blob = base64ToBlob(base64Data, contentType);
-    const url = URL.createObjectURL(blob);
-
-    videoRef.current.srcObject = null;
-    videoRef.current.src = url;
-    videoRef.current.play();
+    let byte_arr = JSON.parse(wsOnMessageEvent.data).data;
+    let byte_string = String.fromCharCode.apply(null, byte_arr);
+    let parsedJson = JSON.parse(byte_string);
+    let base64EncodedString = parsedJson.message;
+    return base64EncodedString;
   } catch (e) {
-    // setWSMessage(`${e}`);
     console.log(e);
+    return ""
   }
-}
-
+};
 
 export default function Home() {
-  const videoRef = React.createRef<HTMLVideoElement>();
   const [ws_message, setWSMessage] = useState("Idle");
-  const [ws_data, setWSData] = useState("cleared");
+  const [vidBase64, setVidBase64] = useState("");
 
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:8080');
     ws.onopen = () => {
-      // console.log("WebSocket Connection Successful.");
+      console.log("WebSocket Connection Established.");
       setWSMessage(`Connection Established.`);
     }
 
     ws.onmessage = (event: MessageEvent) => {
-      console.log(`message received: ${event.data}`);
-      // let received_data = JSON.parse(event.data).message;
-      // setWSData(received_data.slice(0, 100));
-      // setVideoSrc(videoRef, received_data);
+      console.log(`message received:`);
+      const frame = extractBase64EncodedString(event);
+      setVidBase64(frame);
     };
 
     ws.onerror = function (e: any) {
@@ -69,12 +43,8 @@ export default function Home() {
     }
 
     ws.onclose = function () {
-      setWSMessage("Connection closed.");
+      setWSMessage("Connection closed. Try refreshing to re-connect.");
     }
-
-    // return () => {
-    //   ws.close();
-    // };
   }, []);
 
   return (
@@ -85,9 +55,18 @@ export default function Home() {
       <div>Console:</div>
       <div>{ws_message}</div>
 
-      <div>Data:</div>
-      <div>{ws_data}</div>
-      <video ref={videoRef} autoPlay playsInline />
+      {vidBase64 == "" ? (
+        <div className={`flex items-center justify-center w-[640px] h-[480px] border border-white`}>
+          <div className={`mx-auto`}>
+            The connection is established, but there is no video source.
+          </div>
+        </div>
+      ) : (
+        <img
+          src={`data:image/jpeg;base64,${vidBase64}`}
+          alt="Video Frame"
+          className={`select-none drag-none`} />
+      )}
     </main>
   );
 }
