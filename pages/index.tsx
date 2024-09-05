@@ -62,7 +62,11 @@ export default function Home() {
       className={`flex min-h-screen flex-col items-center justify-between p-24 ${inter.className}`}>
       <title>Smartphone Usage Detection</title>
 
-      <h1>Smartphone Usage Detection</h1>
+      <h1 className={`text-2xl flex flex-row gap-3 items-center justify-center`}>
+        <p className={`font-bold text-[#ff7700]`}>{`<   >`}</p>
+        Smartphone Usage Detection
+        <p className={`font-bold text-[#ff7700]`}>{`< / >`}</p>
+      </h1>
 
       <div
         className={`hover:cursor-pointer ${!vidBase64 && 'opacity-20'}`}
