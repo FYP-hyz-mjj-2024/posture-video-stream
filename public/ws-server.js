@@ -1,6 +1,6 @@
 const WebSocket = require('ws');
 
-const wss = new WebSocket.Server({ port: 8080 });
+const wss = new WebSocket.Server({ port: 8976 });
 
 wss.on('connection', (stream) => {
     let timeoutId;
