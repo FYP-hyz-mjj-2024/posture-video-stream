@@ -15,8 +15,10 @@ const extractBase64EncodedString = (wsOnMessageEvent: MessageEvent<any>) => {
     let byte_arr = JSON.parse(wsOnMessageEvent.data).data;
     let byte_string = String.fromCharCode.apply(null, byte_arr);
     let parsedJson = JSON.parse(byte_string);
-    let base64EncodedString = parsedJson.message;
-    return base64EncodedString;
+    return {
+      frameBase64: parsedJson.frameBase64,
+      timestamp: parsedJson.timestamp
+    };
   } catch (e) {
     console.log(e);
     return ""
@@ -25,7 +27,10 @@ const extractBase64EncodedString = (wsOnMessageEvent: MessageEvent<any>) => {
 
 export default function Home() {
   const [ws_code, setWSCode] = useState<"Connected" | "Closed" | "Error">("Closed");
+
+  // Live-Stream Video Feed
   const [vidBase64, setVidBase64] = useState("");
+  const [vidLatency, setVidLatency] = useState<Number | null>(null);
 
   const [isPaused, setIsPaused] = useState<boolean>(false);
 
@@ -39,8 +44,11 @@ export default function Home() {
       if (isPaused)
         return
       console.log(`message received:`);
-      const frame = extractBase64EncodedString(event);
-      setVidBase64(frame);
+      const frameInfo = extractBase64EncodedString(event);
+      if (!frameInfo)
+        return
+      setVidBase64(frameInfo.frameBase64);
+      setVidLatency(Date.now() / 1000 - parseFloat(frameInfo.timestamp))
     };
 
     ws.onerror = function (e: any) {
@@ -57,17 +65,20 @@ export default function Home() {
     }
   }, [isPaused]);
 
+
   return (
     <main
       className={`flex min-h-screen flex-col items-center justify-between p-24 ${inter.className}`}>
       <title>Smartphone Usage Detection</title>
 
+      {/** Title */}
       <h1 className={`text-2xl flex flex-row gap-3 items-center justify-center`}>
         <p className={`font-bold text-[#ff7700]`}>{`<   >`}</p>
         Smartphone Usage Detection
         <p className={`font-bold text-[#ff7700]`}>{`< / >`}</p>
       </h1>
 
+      {/** Pause Button */}
       <div
         className={`hover:cursor-pointer ${!vidBase64 && 'opacity-20'}`}
         onClick={() => {
@@ -78,11 +89,13 @@ export default function Home() {
         {vidBase64 ? (isPaused ? "Resume" : "Pause") : ("No Video Source")}
       </div>
 
+      {/** Connection Indicator */}
       <div className={`flex flex-row items-center gap-2 p-2`}>
         <Indicator ws_code={ws_code} />
         <div>{codes[ws_code].Prompt}</div>
       </div>
 
+      {/** Video Frame */}
       {vidBase64 == "" ? (
         <div className={`flex items-center justify-center w-[640px] h-[480px] border border-white`}>
           <div className={`mx-auto`}>
@@ -95,6 +108,11 @@ export default function Home() {
           alt="Video Frame"
           className={`select-none drag-none`} />
       )}
+
+      <div className={`flex flew-row gap-2`}>
+        <div>{`Latency: `}</div>
+        <div>{vidLatency ? `${vidLatency.toFixed(3)} secs` : "Not Available"}</div>
+      </div>
     </main>
   );
 }
