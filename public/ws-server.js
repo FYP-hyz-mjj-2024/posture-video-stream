@@ -15,6 +15,7 @@ wss.on('connection', (stream) => {
             //     }
             // });
             broadCastMessage(message);
+            resetTimer();
         } catch (e) {
             console.log("Error sending message: ", e);
         }
