@@ -1,9 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Inter } from "next/font/google";
 import Indicator from "@/components/Indicator";
 import codes from "@/data/WSCode";
-
-const inter = Inter({ subsets: ["latin"] });
 
 /**
  * Given a websocket onMessage event, extract the base64 string.
@@ -72,7 +69,7 @@ export default function Home() {
 
   return (
     <main
-      className={`flex min-h-screen flex-col items-center justify-between p-24 ${inter.className}`}>
+      className={`flex min-h-screen flex-col items-center justify-between p-24 `}>
       <title>Smartphone Usage Detection</title>
 
       {/** Title */}
