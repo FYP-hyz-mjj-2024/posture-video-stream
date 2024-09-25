@@ -15,13 +15,14 @@ const extractBase64EncodedString = (wsOnMessageEvent: MessageEvent<any>) => {
     let byte_arr = JSON.parse(wsOnMessageEvent.data).data;
     let byte_string = String.fromCharCode.apply(null, byte_arr);
     let parsedJson = JSON.parse(byte_string);
-    return {
-      frameBase64: parsedJson.frameBase64,
-      timestamp: parsedJson.timestamp
-    };
+    // return {
+    //   frameBase64: parsedJson.frameBase64,
+    //   timestamp: parsedJson.timestamp
+    // };
+    return parsedJson;
   } catch (e) {
     console.log(e);
-    return ""
+    return null
   }
 };
 
@@ -45,8 +46,11 @@ export default function Home() {
         return
       console.log(`message received:`);
       const frameInfo = extractBase64EncodedString(event);
-      if (!frameInfo)
+      if (!frameInfo || frameInfo.terminate) {
+        setVidBase64("");
+        setVidLatency(null);
         return
+      }
       setVidBase64(frameInfo.frameBase64);
       setVidLatency(Date.now() / 1000 - parseFloat(frameInfo.timestamp))
     };
