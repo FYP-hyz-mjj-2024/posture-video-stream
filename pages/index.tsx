@@ -33,7 +33,7 @@ export default function Home() {
   const [isPaused, setIsPaused] = useState<boolean>(false);
 
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:8080');
+    const ws = new WebSocket('ws://152.42.198.96:8976');
     ws.onopen = () => {
       setWSCode("Connected");
     }
