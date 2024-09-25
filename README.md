@@ -46,3 +46,50 @@ Using the `CONTAINER ID` get from `docker ps`, run
 ```shell
 docker rm <CONTGAINER_ID>
 ```
+
+# Upload to DockerHub
+## 1. Upload/Push
+### 1.1 Login to Docker Hub
+Run 
+```shell 
+docker login
+```
+### 1.2 Tag the Image
+Docker images need to be tagged properly to match the naming conventions of Docker Hub.
+Run
+```shell
+docker tag <local_image_name>:<tag> <dockerhub_username>/<repository_name>:<tag>
+```
+For this project, on user Huang Yanzhen, the command would be:
+```shell
+docker tag smart-device-usage-detection:latest yanzhenhuang/smart-device-usage-detection:latest
+```
+
+### 1.3 Push Image to Docker Hub
+Run
+```shell
+docker push <dockerhub_username>/<repository_name>:<tag>
+```
+
+For this project, on user Huang Yanzhen, the command would be:
+```shell
+docker push yanzhenhuang/smart-device-usage-detection:latest
+```
+## 2. Download/Pull
+### 2.1 Pull Image
+Pull the image from Docker Hub on your mirror server.
+```shell
+docker pull <dockerhub_username>/<repository_name>:<tag>
+```
+
+### 2.2 Re-Tag
+Re-Tag it for new registry.
+```shell
+docker tag <local_image_name>:<tag> <dockerhub_username>/<repository_name>:<tag>
+```
+
+### 2.3 Push it to the new registry
+Run
+```shell
+docker push <dockerhub_username>/<repository_name>:<tag>
+```
