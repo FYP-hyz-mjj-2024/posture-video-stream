@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Indicator from "@/components/Indicator";
 import codes from "@/data/WSCode";
+import { WS_URL } from "@/utils/pathMap"
 
 /**
  * Given a websocket onMessage event, extract the base64 string.
@@ -33,9 +34,10 @@ export default function Home() {
   const [isPaused, setIsPaused] = useState<boolean>(false);
 
   useEffect(() => {
-    const ws = new WebSocket('ws://152.42.198.96:8976');
+    const ws = new WebSocket(WS_URL);
     ws.onopen = () => {
-      setWSCode("Connected");
+      setWSCode(`Connected`);
+      console.log(`Connected on ${WS_URL}`);
     }
 
     ws.onmessage = (event: MessageEvent) => {
