@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "concurrently \"node public/ws-server.js\" \"next dev\"",
+    "dev": "cross-env NODE_ENV=development concurrently \"node public/ws-server.js\" \"next dev\"",
     "build": "next build",
-    "start": "concurrently \"node public/ws-server.js\" \"next start\"",
+    "start": "cross-env NODE_ENV=production concurrently \"node public/ws-server.js\" \"next start\"",
     "lint": "next lint"
   },
   "dependencies": {
@@ -19,6 +19,7 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "cross-env": "^7.0.3",
     "eslint": "^8",
     "eslint-config-next": "14.2.7",
     "postcss": "^8",
