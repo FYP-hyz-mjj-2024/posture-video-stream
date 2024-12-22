@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Indicator from "@/components/Indicator";
 import codes from "@/data/WSCode";
-import { WS_URL } from "@/utils/pathMap"
+import { WS_URL } from "@/utils/pathMap";
 
 /**
  * Given a websocket onMessage event, extract the base64 string.
@@ -13,65 +13,61 @@ const extractBase64EncodedString = (wsOnMessageEvent: MessageEvent<any>) => {
     let byte_arr = JSON.parse(wsOnMessageEvent.data).data;
     let byte_string = String.fromCharCode.apply(null, byte_arr);
     let parsedJson = JSON.parse(byte_string);
-    // return {
-    //   frameBase64: parsedJson.frameBase64,
-    //   timestamp: parsedJson.timestamp
-    // };
     return parsedJson;
   } catch (e) {
     console.log(e);
-    return null
+    return null;
   }
 };
 
 export default function Home() {
   const [ws_code, setWSCode] = useState<"Connected" | "Closed" | "Error">("Closed");
-
-  // Live-Stream Video Feed
-  const [vidBase64, setVidBase64] = useState("");
   const [vidLatency, setVidLatency] = useState<Number | null>(null);
-
   const [isPaused, setIsPaused] = useState<boolean>(false);
+
+  const videoFrameRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
     const ws = new WebSocket(WS_URL);
     ws.onopen = () => {
       setWSCode(`Connected`);
       console.log(`Connected on ${WS_URL}`);
-    }
+    };
 
     ws.onmessage = (event: MessageEvent) => {
       if (isPaused)
-        return
+        return;
       console.log(`message received:`);
       const frameInfo = extractBase64EncodedString(event);
       if (!frameInfo || frameInfo.terminate) {
-        setVidBase64("");
+        if (videoFrameRef.current) {
+          videoFrameRef.current.src = "";
+        }
         setVidLatency(null);
-        return
+        return;
       }
-      setVidBase64(frameInfo.frameBase64);
-      setVidLatency(Date.now() / 1000 - parseFloat(frameInfo.timestamp))
+      if (videoFrameRef.current) {
+        videoFrameRef.current.src = `data:image/jpeg;base64,${frameInfo.frameBase64}`;
+      }
+      setVidLatency(Date.now() / 1000 - parseFloat(frameInfo.timestamp));
     };
 
     ws.onerror = function (e: any) {
       setWSCode("Error");
       console.log(e);
-    }
+    };
 
     ws.onclose = function () {
       setWSCode("Closed");
-    }
+    };
 
     return () => {
       ws.close();
-    }
+    };
   }, [isPaused]);
 
-
   return (
-    <main
-      className={`flex min-h-screen flex-col items-center justify-between p-24 `}>
+    <main className={`flex min-h-screen flex-col items-center justify-between p-24 `}>
       <title>Smartphone Usage Detection</title>
 
       {/** Title */}
@@ -83,13 +79,13 @@ export default function Home() {
 
       {/** Pause Button */}
       <div
-        className={`hover:cursor-pointer ${!vidBase64 && 'opacity-20'}`}
+        className={`hover:cursor-pointer ${!videoFrameRef.current?.src && 'opacity-20'}`}
         onClick={() => {
-          if (!vidBase64)
+          if (!videoFrameRef.current?.src)
             return;
           setIsPaused(!isPaused);
         }}>
-        {vidBase64 ? (isPaused ? "Resume" : "Pause") : ("No Video Source")}
+        {videoFrameRef.current?.src ? (isPaused ? "Resume" : "Pause") : ("No Video Source")}
       </div>
 
       {/** Connection Indicator */}
@@ -99,7 +95,7 @@ export default function Home() {
       </div>
 
       {/** Video Frame */}
-      {vidBase64 == "" ? (
+      {videoFrameRef.current?.src == "" ? (
         <div className={`flex items-center justify-center w-[640px] h-[480px] border border-white`}>
           <div className={`mx-auto`}>
             {codes[ws_code].VideoPrompt}
@@ -107,10 +103,14 @@ export default function Home() {
         </div>
       ) : (
         <img
-          src={`data:image/jpeg;base64,${vidBase64}`}
+          ref={videoFrameRef}
           alt="Video Frame"
           className={`select-none drag-none`} />
       )}
+      {/* <img
+        ref={videoFrameRef}
+        alt="Video Frame"
+        className={`select-none drag-none`} /> */}
 
       <div className={`flex flew-row gap-2`}>
         <div>{`Latency: `}</div>
