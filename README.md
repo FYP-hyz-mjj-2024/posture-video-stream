@@ -14,14 +14,14 @@ docker build -t smart-device-usage-detection .
 
 ## 2. Run the docker container
 ```shell
-docker run -p 3000:3000 -p 8080:8080 smart-device-usage-detection
+docker run -p 3000:3000 -p 8976:8976 smart-device-usage-detection
 ```
 - `-p 3000:3000`: Map main port `3000` to container port `3000`, for `Next.js` app.
-- `-p 8080:8080`: Map main port `8080` to container port `8080`, for `WebSocket` server.
+- `-p 8976:8976`: Map main port `v` to container port `8976`, for `WebSocket` server.
 
 After running this command, the container will run:
 - the next app at `http://localhost:3000`, and 
-- the websocket at `ws://localhost:8080`.
+- the websocket at `ws://localhost:8976`.
 
 ## 3. Access and Test the Miror
 ### 3.1 Find running containers
