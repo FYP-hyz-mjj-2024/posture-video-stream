@@ -24,10 +24,15 @@ export default function Home() {
   const [ws_code, setWSCode] = useState<"Connected" | "Closed" | "Error">("Closed");
   const [vidLatency, setVidLatency] = useState<Number | null>(null);
   const [isPaused, setIsPaused] = useState<boolean>(false);
+  const [haveVideoSource, setHaveVideoSource] = useState<boolean>(false);
 
   const videoFrameRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
+    if (videoFrameRef.current?.src) {
+      videoFrameRef.current.src = "";
+    }
+
     const ws = new WebSocket(WS_URL);
     ws.onopen = () => {
       setWSCode(`Connected`);
@@ -42,12 +47,17 @@ export default function Home() {
       if (!frameInfo || frameInfo.terminate) {
         if (videoFrameRef.current) {
           videoFrameRef.current.src = "";
+          setHaveVideoSource(false);
         }
         setVidLatency(null);
         return;
       }
       if (videoFrameRef.current) {
         videoFrameRef.current.src = `data:image/jpeg;base64,${frameInfo.frameBase64}`;
+      }
+
+      if (!haveVideoSource) {
+        setHaveVideoSource(true);
       }
       setVidLatency(Date.now() / 1000 - parseFloat(frameInfo.timestamp));
     };
@@ -74,7 +84,7 @@ export default function Home() {
       <h1 className={`text-2xl flex flex-row gap-3 items-center justify-center`}>
         <p className={`font-bold text-[#ff7700]`}>{`<   >`}</p>
         Smartphone Usage Detection
-        <p className={`font-bold text-[#ff7700]`}>{`< / >`}</p>
+        <p className={`font-bold text-[#ff7700]`}>{`</>`}</p>
       </h1>
 
       {/** Pause Button */}
@@ -95,7 +105,7 @@ export default function Home() {
       </div>
 
       {/** Video Frame */}
-      {videoFrameRef.current?.src == "" ? (
+      {!haveVideoSource ? (
         <div className={`flex items-center justify-center w-[640px] h-[480px] border border-white`}>
           <div className={`mx-auto`}>
             {codes[ws_code].VideoPrompt}
@@ -105,14 +115,14 @@ export default function Home() {
         <img
           ref={videoFrameRef}
           alt="Video Frame"
-          className={`select-none drag-none`} />
+          className={`select-none drag-none w-[640px] h-[480px]`} />
       )}
       {/* <img
         ref={videoFrameRef}
         alt="Video Frame"
         className={`select-none drag-none`} /> */}
 
-      <div className={`flex flew-row gap-2`}>
+      <div className={`flex flew-row mt-2 gap-2`}>
         <div>{`Latency: `}</div>
         <div>{vidLatency ? `${vidLatency.toFixed(3)} secs` : "Not Available"}</div>
       </div>
