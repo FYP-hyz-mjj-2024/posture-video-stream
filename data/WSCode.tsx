@@ -2,7 +2,7 @@ const codes = {
     Connected: {
         "Prompt": "Connection Established.",
         "Color": "#00FF00",
-        "VideoPrompt": "The connection is established, but there is no video source."
+        "VideoPrompt": "The connection to websocket server is established, but there is no video source."
     },
     Closed: {
         "Prompt": "Connection Closed. Try re-freshing to re-connect.",
