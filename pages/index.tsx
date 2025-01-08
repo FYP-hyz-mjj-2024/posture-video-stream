@@ -3,6 +3,14 @@ import Indicator from "@/components/Indicator";
 import codes from "@/data/WSCode";
 import { WS_URL } from "@/utils/pathMap";
 
+import { Line } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend
+} from 'chart.js';
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+
 /**
  * Given a websocket onMessage event, extract the base64 string.
  * @param wsOnMessageEvent 
@@ -26,10 +34,25 @@ export default function Home() {
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [haveVideoSource, setHaveVideoSource] = useState<boolean>(false);
 
+  const [chartData, setChartData] = useState({
+    labels: [] as String[],
+    datasets: [
+      {
+        label: 'Latency (seconds)',
+        data: [] as Number[],
+        fill: true,
+        backgroundColor: 'rgba(75,192,192,0.4)',
+        borderColor: 'rgba(75,192,192,1)',
+        // pointRadius: 0,
+        // pointHitRadius: 0
+      }
+    ],
+  });
+
   const videoFrameRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
-    if (videoFrameRef.current?.src) {
+    if (videoFrameRef.current?.src && !haveVideoSource) {
       videoFrameRef.current.src = "";
     }
 
@@ -42,8 +65,11 @@ export default function Home() {
     ws.onmessage = (event: MessageEvent) => {
       if (isPaused)
         return;
+
       console.log(`message received:`);
+
       const frameInfo = extractBase64EncodedString(event);
+
       if (!frameInfo || frameInfo.terminate) {
         if (videoFrameRef.current) {
           videoFrameRef.current.src = "";
@@ -75,6 +101,27 @@ export default function Home() {
       ws.close();
     };
   }, [isPaused]);
+
+  useEffect(() => {
+    if (vidLatency == null) {
+      return;
+    }
+    const newLabels = [...chartData.labels, ""];
+    const newData = [...chartData.datasets[0].data, vidLatency];
+    if (newData.length > 10) {
+      newLabels.shift();
+      newData.shift();
+    }
+    setChartData({
+      labels: newLabels,
+      datasets: [
+        {
+          ...chartData.datasets[0],
+          data: newData,
+        }
+      ]
+    })
+  }, [vidLatency]);
 
   return (
     <main className={`flex min-h-screen flex-col items-center justify-between p-24 `}>
@@ -125,6 +172,27 @@ export default function Home() {
       <div className={`flex flew-row mt-2 gap-2`}>
         <div>{`Latency: `}</div>
         <div>{vidLatency ? `${vidLatency.toFixed(3)} secs` : "Not Available"}</div>
+      </div>
+
+      <div className='flex flex-row mx-auto align-center justify-center' style={{ width: '640px', height: '120px' }}>
+        <Line
+          data={chartData}
+          options={{
+            animation: false,
+            plugins: {
+              legend: {
+                display: false,
+              }
+            },
+            scales: {
+              x: {
+                grid: { display: false }
+              },
+              y: {
+                grid: { display: false }
+              },
+            }
+          }} />
       </div>
     </main>
   );
