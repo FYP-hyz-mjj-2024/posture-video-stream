@@ -31,6 +31,7 @@ const extractBase64EncodedString = (wsOnMessageEvent: MessageEvent<any>) => {
 export default function Home() {
   const [ws_code, setWSCode] = useState<"Connected" | "Closed" | "Error">("Closed");
   const [vidLatency, setVidLatency] = useState<Number | null>(null);
+  const [showLatencyDesc, setShowLatencyDesc] = useState<boolean>(false);
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [haveVideoSource, setHaveVideoSource] = useState<boolean>(false);
 
@@ -50,6 +51,8 @@ export default function Home() {
   });
 
   const videoFrameRef = useRef<HTMLImageElement>(null);
+
+
 
   useEffect(() => {
     if (videoFrameRef.current?.src && !haveVideoSource) {
@@ -170,9 +173,19 @@ export default function Home() {
         className={`select-none drag-none`} /> */}
 
       <div className={`flex flew-row mt-2 gap-2`}>
+        <div className={`opacity-50`}
+          onMouseEnter={() => {
+            setShowLatencyDesc(true);
+          }}
+          onMouseLeave={() => {
+            setShowLatencyDesc(false);
+          }}
+        >{`ⓘ`}</div>
         <div>{`Latency: `}</div>
         <div>{vidLatency ? `${vidLatency.toFixed(3)} secs` : "Not Available"}</div>
       </div>
+
+
 
       <div className='flex flex-row mx-auto align-center justify-center' style={{ width: '640px', height: '120px' }}>
         <Line
@@ -194,6 +207,14 @@ export default function Home() {
             }
           }} />
       </div>
+
+      {showLatencyDesc && (
+        <div className={`flex flex-row w-[480px] text-center opacity-50 text-xs mt-3 absolute bottom-5`}>
+          <p>
+            This is the latency between the beginning of stream-pushing a frame from the back-end to the receiving of this frame at the front-end.
+          </p>
+        </div>
+      )}
     </main>
   );
 }
