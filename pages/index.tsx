@@ -31,6 +31,8 @@ const extractBase64EncodedString = (wsOnMessageEvent: MessageEvent<any>) => {
 export default function Home() {
   const [ws_code, setWSCode] = useState<"Connected" | "Closed" | "Error">("Closed");
   const [vidLatency, setVidLatency] = useState<Number | null>(null);
+  const [announcedFaces, setAnnouncedFaces] = useState<string[]>([]);
+
   const [showLatencyDesc, setShowLatencyDesc] = useState<boolean>(false);
   const [isPaused, setIsPaused] = useState<boolean>(false);
   const [haveVideoSource, setHaveVideoSource] = useState<boolean>(false);
@@ -56,17 +58,19 @@ export default function Home() {
 
   useEffect(() => {
     if (videoFrameRef.current?.src && !haveVideoSource) {
+      // No video source
       videoFrameRef.current.src = "";
     }
 
     const ws = new WebSocket(WS_URL);
+
     ws.onopen = () => {
       setWSCode(`Connected`);
       console.log(`Connected on ${WS_URL}`);
     };
 
     ws.onmessage = (event: MessageEvent) => {
-      if (isPaused)
+      if (isPaused)   // If manually paused, doesn't react to the message.
         return;
 
       console.log(`message received:`);
@@ -81,8 +85,13 @@ export default function Home() {
         setVidLatency(null);
         return;
       }
-      if (videoFrameRef.current) {
+
+      if (videoFrameRef.current && frameInfo.frameBase64) {
         videoFrameRef.current.src = `data:image/jpeg;base64,${frameInfo.frameBase64}`;
+      }
+
+      if (videoFrameRef.current && frameInfo.announced_face_frames) {
+        setAnnouncedFaces(frameInfo.announced_face_frames);
       }
 
       if (!haveVideoSource) {
@@ -128,12 +137,12 @@ export default function Home() {
 
   return (
     <main className={`flex min-h-screen flex-col items-center justify-between p-24 `}>
-      <title>Smartphone Usage Detection</title>
+      <title>Pedestrian Cell Phone Usage Detection</title>
 
       {/** Title */}
       <h1 className={`text-2xl flex flex-row gap-3 items-center justify-center`}>
         <p className={`font-bold text-[#ff7700]`}>{`<   >`}</p>
-        Smartphone Usage Detection
+        Pedestrian Cell Phone Usage Detection
         <p className={`font-bold text-[#ff7700]`}>{`</>`}</p>
       </h1>
 
@@ -155,22 +164,28 @@ export default function Home() {
       </div>
 
       {/** Video Frame */}
-      {!haveVideoSource ? (
-        <div className={`flex items-center justify-center w-[640px] h-[480px] border border-white`}>
-          <div className={`mx-auto`}>
-            {codes[ws_code].VideoPrompt}
+      <div className="flex flex-row">
+        {!haveVideoSource ? (
+          <div className={`flex items-center justify-center w-[640px] h-[480px] border border-white`}>
+            <div className={`mx-auto`}>
+              {codes[ws_code].VideoPrompt}
+            </div>
           </div>
+        ) : (
+          <img
+            ref={videoFrameRef}
+            alt="Video Frame"
+            className={`select-none drag-none w-[640px] h-[480px]`} />
+        )}
+        <div className=" flex flex-col w-36 border border-white gap-2">
+          <div className={`flex flex-row items-center justify-center`}>
+            <p>{"You broke the law!"}</p>
+          </div>
+          {announcedFaces?.map((v, k) => (
+            <img key={k} src={`data:image/jpeg;base64,${v}`}></img>
+          ))}
         </div>
-      ) : (
-        <img
-          ref={videoFrameRef}
-          alt="Video Frame"
-          className={`select-none drag-none w-[640px] h-[480px]`} />
-      )}
-      {/* <img
-        ref={videoFrameRef}
-        alt="Video Frame"
-        className={`select-none drag-none`} /> */}
+      </div>
 
       <div className={`flex flew-row mt-2 gap-2`}>
         <div className={`opacity-50`}
