@@ -91,7 +91,7 @@ export default function Home() {
       }
 
       if (videoFrameRef.current && frameInfo.announced_face_frames) {
-        setAnnouncedFaces(frameInfo.announced_face_frames);
+        setAnnouncedFaces(prevAnnouncedFaces => [...frameInfo.announced_face_frames, ...prevAnnouncedFaces].slice(0, 3));
       }
 
       if (!haveVideoSource) {
@@ -179,10 +179,11 @@ export default function Home() {
         )}
         <div className=" flex flex-col w-36 border border-white gap-2">
           <div className={`flex flex-row items-center justify-center`}>
-            <p>{"You broke the law!"}</p>
+            <p>{`${announcedFaces.length} broke the law!`}</p>
           </div>
           {announcedFaces?.map((v, k) => (
-            <img key={k} src={`data:image/jpeg;base64,${v}`}></img>
+            <img key={k} src={`data:image/jpeg;base64,${v}`}
+              className={`w-full`} />
           ))}
         </div>
       </div>
@@ -199,8 +200,6 @@ export default function Home() {
         <div>{`Latency: `}</div>
         <div>{vidLatency ? `${vidLatency.toFixed(3)} secs` : "Not Available"}</div>
       </div>
-
-
 
       <div className='flex flex-row mx-auto align-center justify-center' style={{ width: '640px', height: '120px' }}>
         <Line
