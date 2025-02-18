@@ -179,7 +179,7 @@ export default function Home() {
         )}
         <div className=" flex flex-col w-36 border border-white gap-2">
           <div className={`flex flex-row items-center justify-center`}>
-            <p>{`${announcedFaces.length} broke the law!`}</p>
+            <p>{`You broke the law!`}</p>
           </div>
           {announcedFaces?.map((v, k) => (
             <img key={k} src={`data:image/jpeg;base64,${v}`}
