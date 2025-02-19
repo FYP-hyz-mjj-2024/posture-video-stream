@@ -29,14 +29,23 @@ const extractBase64EncodedString = (wsOnMessageEvent: MessageEvent<any>) => {
 };
 
 export default function Home() {
-  const [ws_code, setWSCode] = useState<"Connected" | "Closed" | "Error">("Closed");
-  const [vidLatency, setVidLatency] = useState<Number | null>(null);
-  const [announcedFaces, setAnnouncedFaces] = useState<string[]>([]);
+  // Image frame ref of DOM
+  const videoFrameRef = useRef<HTMLImageElement>(null);
 
-  const [showLatencyDesc, setShowLatencyDesc] = useState<boolean>(false);
-  const [isPaused, setIsPaused] = useState<boolean>(false);
+  // Websocket connection status
+  const [ws_code, setWSCode] = useState<"Connected" | "Closed" | "Error">("Closed");
+
+  // Video Latency
+  const [vidLatency, setVidLatency] = useState<Number | null>(null);
+
+  // Video source existence flag
   const [haveVideoSource, setHaveVideoSource] = useState<boolean>(false);
 
+  // List of base64 strings of the announced faces
+  const [announcedFaces, setAnnouncedFaces] = useState<string[]>([]);
+
+  // Local display settings
+  const [isPaused, setIsPaused] = useState<boolean>(false);
   const [chartData, setChartData] = useState({
     labels: [] as String[],
     datasets: [
@@ -52,10 +61,9 @@ export default function Home() {
     ],
   });
 
-  const videoFrameRef = useRef<HTMLImageElement>(null);
-
-
-
+  /**
+   * Set up websocket video streaming.
+   */
   useEffect(() => {
     if (videoFrameRef.current?.src && !haveVideoSource) {
       // No video source
@@ -73,11 +81,11 @@ export default function Home() {
       if (isPaused)   // If manually paused, doesn't react to the message.
         return;
 
-      console.log(`message received:`);
+      // Data frame info: Either video frame or face announcing.
+      const dataframeInfo = extractBase64EncodedString(event);
 
-      const frameInfo = extractBase64EncodedString(event);
-
-      if (!frameInfo || frameInfo.terminate) {
+      // Receive terminate message, terminate streaming.
+      if (!dataframeInfo || dataframeInfo.terminate) {
         if (videoFrameRef.current) {
           videoFrameRef.current.src = "";
           setHaveVideoSource(false);
@@ -86,23 +94,28 @@ export default function Home() {
         return;
       }
 
-      if (videoFrameRef.current && frameInfo.frameBase64) {
-        videoFrameRef.current.src = `data:image/jpeg;base64,${frameInfo.frameBase64}`;
+      // Extract video frame
+      if (videoFrameRef.current && dataframeInfo.frameBase64) {
+        videoFrameRef.current.src = `data:image/jpeg;base64,${dataframeInfo.frameBase64}`;
       }
 
-      if (videoFrameRef.current && frameInfo.announced_face_frames) {
-        setAnnouncedFaces(prevAnnouncedFaces => [...frameInfo.announced_face_frames, ...prevAnnouncedFaces].slice(0, 3));
+      // Update face frame
+      if (videoFrameRef.current && dataframeInfo.announced_face_frames) {
+        setAnnouncedFaces(prevAnnouncedFaces => [...dataframeInfo.announced_face_frames, ...prevAnnouncedFaces].slice(0, 4));
       }
 
+      // Receive a non-terminate message, set viideo source flag to true.
       if (!haveVideoSource) {
         setHaveVideoSource(true);
       }
-      setVidLatency(Date.now() / 1000 - parseFloat(frameInfo.timestamp));
+
+      // Update message latency.
+      setVidLatency(Date.now() / 1000 - parseFloat(dataframeInfo.timestamp));
     };
 
     ws.onerror = function (e: any) {
       setWSCode("Error");
-      console.log(e);
+      console.error(`An error regarding the websocket server client occurred. Error message: ${e.message || e}`);
     };
 
     ws.onclose = function () {
@@ -114,13 +127,16 @@ export default function Home() {
     };
   }, [isPaused]);
 
+  /**
+   * Setup video latency chart.
+   */
   useEffect(() => {
     if (vidLatency == null) {
       return;
     }
     const newLabels = [...chartData.labels, ""];
     const newData = [...chartData.datasets[0].data, vidLatency];
-    if (newData.length > 10) {
+    if (newData.length > 100) {
       newLabels.shift();
       newData.shift();
     }
@@ -136,12 +152,12 @@ export default function Home() {
   }, [vidLatency]);
 
   return (
-    <main className={`flex min-h-screen flex-col items-center justify-between p-24 `}>
+    <main className={`flex flex-col min-h-screen items-center justify-start gap-8 p-24`}>
       <title>Pedestrian Cell Phone Usage Detection</title>
 
       {/** Title */}
       <h1 className={`text-2xl flex flex-row gap-3 items-center justify-center`}>
-        <p className={`font-bold text-[#ff7700]`}>{`<   >`}</p>
+        <p className={`font-bold text-[#ff7700]`}>{`<>`}</p>
         Pedestrian Cell Phone Usage Detection
         <p className={`font-bold text-[#ff7700]`}>{`</>`}</p>
       </h1>
@@ -163,72 +179,74 @@ export default function Home() {
         <div>{codes[ws_code].Prompt}</div>
       </div>
 
-      {/** Video Frame */}
-      <div className="flex flex-row">
-        {!haveVideoSource ? (
-          <div className={`flex items-center justify-center w-[640px] h-[480px] border border-white`}>
-            <div className={`mx-auto`}>
-              {codes[ws_code].VideoPrompt}
+      {/** Main Panel*/}
+      <div className="flex flex-col">
+        <div className="flex flex-row">
+          {/** Video Frame */}
+          {!haveVideoSource ? (
+            <div className={`flex items-center justify-center w-[768px] h-[576px] border border-white`}>
+              <div className={`mx-auto`}>
+                {codes[ws_code].VideoPrompt}
+              </div>
             </div>
-          </div>
-        ) : (
-          <img
-            ref={videoFrameRef}
-            alt="Video Frame"
-            className={`select-none drag-none w-[640px] h-[480px]`} />
-        )}
-        <div className=" flex flex-col w-36 border border-white gap-2">
-          <div className={`flex flex-row items-center justify-center`}>
-            <p>{`You broke the law!`}</p>
-          </div>
-          {announcedFaces?.map((v, k) => (
-            <img key={k} src={`data:image/jpeg;base64,${v}`}
-              className={`w-full`} />
-          ))}
-        </div>
-      </div>
+          ) : (
+            <img
+              ref={videoFrameRef}
+              alt="Video Frame"
+              className={`select-none drag-none w-[768px] h-[576px] border border-white`} />
+          )}
 
-      <div className={`flex flew-row mt-2 gap-2`}>
-        <div className={`opacity-50`}
-          onMouseEnter={() => {
-            setShowLatencyDesc(true);
-          }}
-          onMouseLeave={() => {
-            setShowLatencyDesc(false);
-          }}
-        >{`ⓘ`}</div>
-        <div>{`Latency: `}</div>
-        <div>{vidLatency ? `${vidLatency.toFixed(3)} secs` : "Not Available"}</div>
-      </div>
-
-      <div className='flex flex-row mx-auto align-center justify-center' style={{ width: '640px', height: '120px' }}>
-        <Line
-          data={chartData}
-          options={{
-            animation: false,
-            plugins: {
-              legend: {
-                display: false,
-              }
-            },
-            scales: {
-              x: {
-                grid: { display: false }
-              },
-              y: {
-                grid: { display: false }
-              },
+          {/** Announced Face Frames */}
+          <div className="flex border border-white pt-2 gap-2 flex-col items-center w-36">
+            {
+              announcedFaces?.length > 0 ?
+                (announcedFaces?.map((v, k) => (
+                  <img key={k} src={`data:image/jpeg;base64,${v}`}
+                    className={`w-11/12 max-lg:h-4/5`} />
+                ))) : (
+                  <p className="w-full text-center">No Faces Announced</p>
+                )
             }
-          }} />
+          </div>
+        </div>
+
+        {/** Video Latency Panel */}
+        <div className='flex flex-col border border-white align-center justify-center w-full gap-2'>
+
+          {/** Video Latency Text */}
+          <div className={`flex flew-row w-full gap-2 justify-center`}>
+            <div>{`Latency: `}</div>
+            <div>{vidLatency ? `${vidLatency.toFixed(3)} secs` : "Not Available"}</div>
+          </div>
+
+          <div className="flex flex-row h-32">
+            <Line
+              data={chartData}
+              options={{
+                maintainAspectRatio: false,
+                animation: false,
+                plugins: {
+                  legend: {
+                    display: false,
+                  }
+                },
+                scales: {
+                  x: {
+                    grid: { display: false }
+                  },
+                  y: {
+                    grid: { display: false }
+                  },
+                }
+              }} />
+          </div>
+        </div>
       </div>
 
-      {showLatencyDesc && (
-        <div className={`flex flex-row w-[480px] text-center opacity-50 text-xs mt-3 absolute bottom-5`}>
-          <p>
-            This is the latency between the beginning of stream-pushing a frame from the back-end to the receiving of this frame at the front-end.
-          </p>
-        </div>
-      )}
+
+
+
+
     </main>
   );
 }
