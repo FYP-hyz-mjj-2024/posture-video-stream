@@ -11,6 +11,7 @@ import {
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
+
 /**
  * Given a websocket onMessage event, extract the base64 string.
  * @param wsOnMessageEvent 
@@ -30,7 +31,8 @@ const extractBase64EncodedString = (wsOnMessageEvent: MessageEvent<any>) => {
 
 export default function Home() {
   // Image frame ref of DOM
-  const videoFrameRef = useRef<HTMLImageElement>(null);
+  const videoFrameRef = useRef<HTMLCanvasElement | null>(null);
+  const imageRef = useRef<HTMLImageElement | null>(null);
 
   // Websocket connection status
   const [ws_code, setWSCode] = useState<"Connected" | "Closed" | "Error">("Closed");
@@ -65,9 +67,14 @@ export default function Home() {
    * Set up websocket video streaming.
    */
   useEffect(() => {
-    if (videoFrameRef.current?.src && !haveVideoSource) {
-      // No video source
-      videoFrameRef.current.src = "";
+    // if (videoFrameRef.current?.src && !haveVideoSource) {
+    //   // No video source
+    //   videoFrameRef.current.src = "";
+    // }
+    let image = imageRef.current;
+    if (!image) {
+      image = new Image();
+      imageRef.current = image;
     }
 
     const ws = new WebSocket(WS_URL);
@@ -87,7 +94,7 @@ export default function Home() {
       // Receive terminate message, terminate streaming.
       if (!dataframeInfo || dataframeInfo.terminate) {
         if (videoFrameRef.current) {
-          videoFrameRef.current.src = "";
+          // videoFrameRef.current.src = "";
           setHaveVideoSource(false);
         }
         setVidLatency(null);
@@ -95,13 +102,23 @@ export default function Home() {
       }
 
       // Extract video frame
-      if (videoFrameRef.current && dataframeInfo.frameBase64) {
-        videoFrameRef.current.src = `data:image/jpeg;base64,${dataframeInfo.frameBase64}`;
+      if (videoFrameRef.current && imageRef.current && dataframeInfo.frameBase64) {
+        // videoFrameRef.current.src = `data:image/jpeg;base64,${dataframeInfo.frameBase64}`;
+        const canvas = videoFrameRef.current as HTMLCanvasElement;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+
+          imageRef.current.src = `data:image/jpeg;base64,${dataframeInfo.frameBase64}`;
+          imageRef.current.onload = () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+          };
+        }
       }
 
       // Update face frame
       if (videoFrameRef.current && dataframeInfo.announced_face_frames) {
-        setAnnouncedFaces(prevAnnouncedFaces => [...dataframeInfo.announced_face_frames, ...prevAnnouncedFaces].slice(0, 4));
+        setAnnouncedFaces(prevAnnouncedFaces => [...dataframeInfo.announced_face_frames, ...prevAnnouncedFaces].slice(0, 3));
       }
 
       // Receive a non-terminate message, set viideo source flag to true.
@@ -163,7 +180,7 @@ export default function Home() {
       </h1>
 
       {/** Pause Button */}
-      <div
+      {/* <div
         className={`hover:cursor-pointer ${!videoFrameRef.current?.src && 'opacity-20'}`}
         onClick={() => {
           if (!videoFrameRef.current?.src)
@@ -171,7 +188,7 @@ export default function Home() {
           setIsPaused(!isPaused);
         }}>
         {videoFrameRef.current?.src ? (isPaused ? "Resume" : "Pause") : ("No Video Source")}
-      </div>
+      </div> */}
 
       {/** Connection Indicator */}
       <div className={`flex flex-row items-center gap-2 p-2`}>
@@ -184,25 +201,25 @@ export default function Home() {
         <div className="flex flex-row">
           {/** Video Frame */}
           {!haveVideoSource ? (
-            <div className={`flex items-center justify-center w-[768px] h-[576px] border border-white`}>
+            <div className={`flex items-center justify-center w-[600px] h-[400px] border border-white`}>
               <div className={`mx-auto`}>
                 {codes[ws_code].VideoPrompt}
               </div>
             </div>
           ) : (
-            <img
+            <canvas
               ref={videoFrameRef}
-              alt="Video Frame"
-              className={`select-none drag-none w-[768px] h-[576px] border border-white`} />
+              // alt="Video Frame"
+              className={`select-none drag-none w-[600px] h-[400px] border border-white`} />
           )}
 
           {/** Announced Face Frames */}
-          <div className="flex border border-white pt-2 gap-2 flex-col items-center w-36">
+          <div className="flex border border-white pt-3 gap-3 flex-col items-center w-36">
             {
               announcedFaces?.length > 0 ?
                 (announcedFaces?.map((v, k) => (
                   <img key={k} src={`data:image/jpeg;base64,${v}`}
-                    className={`w-11/12 max-lg:h-4/5`} />
+                    className={`w-[80%] max-lg:h-4/5`} />
                 ))) : (
                   <p className="w-full text-center">No Faces Announced</p>
                 )
@@ -211,7 +228,7 @@ export default function Home() {
         </div>
 
         {/** Video Latency Panel */}
-        <div className='flex flex-col border border-white align-center justify-center w-full gap-2'>
+        <div className='flex flex-col border border-white align-center justify-center gap-2'>
 
           {/** Video Latency Text */}
           <div className={`flex flew-row w-full gap-2 justify-center`}>
