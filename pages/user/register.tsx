@@ -15,47 +15,48 @@ type UserRegister = {
 type UserRegisterSubmit = UserRegister & { passwordConfirm: string };
 
 
-function submit(userRegisterSubmit: UserRegisterSubmit) {
-
-    let { email, name, password } = userRegisterSubmit;
-
-    axios.post(
-        `${process.env.NEXT_PUBLIC_DB_DOMAIN}/user/register`,
-        {
-            email: email,
-            name: name,
-            password: password
-        }
-    ).then((response) => {
-        let user_id = response.data.user_id;
-        let token = response.data.token;
-        // useAuthStore((state) => {
-        //     state.setAuth(user_id, token);
-        // })
-
-    }).catch((e) => {
-
-    })
-}
 
 
-const inputFieldStyle = `flex flex-row w-full p-2 rounded-lg border w-64 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600`;
-const errorStyle = `flex flex-row w-full text-red-400 m-0 pl-1 text-sm`
+
+const inputFieldStyle = `flex flex-row w-84 p-2 rounded-lg border w-64 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600`;
+const errorStyle = `flex flex-row h-2 text-red-400 m-0 pl-1 text-sm`
 
 export default function login_signup() {
     const { register, handleSubmit, watch, formState: { errors } } = useForm<UserRegisterSubmit>();
+    const [pageError, setPageError] = useState<string | null>(null);
+
+    function submit(userRegisterSubmit: UserRegisterSubmit) {
+
+        let { email, name, password } = userRegisterSubmit;
+
+        setPageError(null);
+
+        axios.post(
+            `${process.env.NEXT_PUBLIC_DB_DOMAIN}/user/register`,
+            {
+                email: email,
+                name: name,
+                password: password
+            }
+        ).then((response) => {
+            let user_id = response.data.user_id;
+            let token = response.data.token;
+            localStorage.setItem("user_id", user_id);
+            localStorage.setItem("token", token);
+        }).catch((e) => {
+            setPageError(e.response?.data.detail);
+        })
+    }
 
     return (
         <main className={`flex flex-col min-h-screen items-center justify-start gap-8 p-24`}>
             <div className={`flex flex-col bg-white dark:bg-gray-900 px-20 py-16 rounded-xl gap-10`}>
-                <div className={`flex flex-row`}>
+                <div className={`flex flex-col gap-1`}>
                     <p className={`text-3xl font-bold`}>Sign Up</p>
+                    {pageError ? (<p className={errorStyle}>{pageError}</p>) : (<p className={errorStyle}></p>)}
                 </div>
-                {/* 
-                <div onClick={() => {
 
-                    console.log(`${user_id} -`)
-                }}>Test</div> */}
+
 
                 <form onSubmit={handleSubmit(submit)}>
                     <div className={`flex flex-row gap-7`}>
@@ -63,7 +64,7 @@ export default function login_signup() {
                             {/** Email Field */}
                             <div className={`flex flex-col gap-1`}>
                                 <p className={`text-sm pl-1 font-bold`}>Email</p>
-                                {errors.email?.message && (<p className={errorStyle}>{errors.email.message}</p>)}
+
                                 <input
                                     {...register("email", {
                                         required: true,
@@ -72,12 +73,16 @@ export default function login_signup() {
                                             message: "Invalid email address format."
                                         }
                                     })} placeholder={`Email`} className={inputFieldStyle} />
+                                {errors.email?.message ?
+                                    (<p className={errorStyle}>{errors.email.message}</p>) :
+                                    (<p className={errorStyle}></p>)
+                                }
                             </div>
 
                             {/** Name Field */}
                             <div className={`flex flex-col gap-1`}>
                                 <p className={`text-sm pl-1 font-bold`}>Name</p>
-                                {errors.name?.message && (<p className={errorStyle}>{errors.name.message}</p>)}
+
                                 <input
                                     {...register("name", {
                                         required: true,
@@ -98,6 +103,10 @@ export default function login_signup() {
                                             return ["admin", "root", "guest", "null", "undefined"].indexOf(value) == -1 || "Don't play tricks.";
                                         }
                                     })} placeholder={`Name`} className={inputFieldStyle} />
+                                {errors.name?.message ?
+                                    (<p className={errorStyle}>{errors.name.message}</p>) :
+                                    (<p className={errorStyle}></p>)
+                                }
                             </div>
                         </div>
 
@@ -105,8 +114,9 @@ export default function login_signup() {
                             {/** Password Field */}
                             <div className={`flex flex-col gap-1`}>
                                 <p className={`text-sm pl-1 font-bold`}>Password</p>
-                                {errors.password?.message && (<p className={errorStyle}>{errors.password.message}</p>)}
+
                                 <input
+                                    type="password"
                                     {...register("password", {
                                         required: true,
                                         minLength: {
@@ -116,19 +126,28 @@ export default function login_signup() {
                                     })}
                                     placeholder={`Password`}
                                     className={inputFieldStyle} />
+                                {errors.password?.message ?
+                                    (<p className={errorStyle}>{errors.password.message}</p>) :
+                                    (<p className={errorStyle}></p>)
+                                }
                             </div>
 
                             {/** Password Confirm Field */}
                             <div className={`flex flex-col gap-1`}>
                                 <p className={`text-sm pl-1 font-bold`}>Password Confirm</p>
-                                {errors.passwordConfirm?.message && (<p className={errorStyle}>{errors.passwordConfirm.message}</p>)}
                                 <input
+                                    type="password"
                                     {...register("passwordConfirm", {
                                         required: true,
                                         validate: (value) => value == watch("password") || "Passwords do not match."
                                     })}
                                     placeholder={`Password Confirm`}
                                     className={inputFieldStyle} />
+
+                                {errors.passwordConfirm?.message ?
+                                    (<p className={errorStyle}>{errors.passwordConfirm.message}</p>) :
+                                    (<p className={errorStyle}></p>)
+                                }
                             </div>
 
                         </div>
