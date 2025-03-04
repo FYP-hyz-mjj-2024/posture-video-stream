@@ -14,14 +14,10 @@ type UserRegister = {
 
 type UserRegisterSubmit = UserRegister & { passwordConfirm: string };
 
-
-
-
-
 const inputFieldStyle = `flex flex-row w-84 p-2 rounded-lg border w-64 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600`;
 const errorStyle = `flex flex-row h-2 text-red-400 m-0 pl-1 text-sm`
 
-export default function login_signup() {
+export default function Register() {
     const { register, handleSubmit, watch, formState: { errors } } = useForm<UserRegisterSubmit>();
     const [pageError, setPageError] = useState<string | null>(null);
 
@@ -55,8 +51,6 @@ export default function login_signup() {
                     <p className={`text-3xl font-bold`}>Sign Up</p>
                     {pageError ? (<p className={errorStyle}>{pageError}</p>) : (<p className={errorStyle}></p>)}
                 </div>
-
-
 
                 <form onSubmit={handleSubmit(submit)}>
                     <div className={`flex flex-row gap-7`}>
