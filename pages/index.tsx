@@ -81,8 +81,12 @@ export default function Home() {
       );
       return response.data;
     } catch (e) {
+      /**
+       * Possible errors:
+       * 1. Bad token: Expired or invalid;
+       * 2. Server stopped.
+       */
       console.log(e);
-      router.push("user/login");
       return null;
     }
   }
