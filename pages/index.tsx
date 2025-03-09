@@ -68,6 +68,11 @@ export default function Home() {
     ],
   });
 
+  /**
+   * Get user data using authentication detials: user_id and token.
+   * @param userAuth User authentication details.
+   * @returns 
+   */
   async function getUser(userAuth: UserAuth) {
     try {
       const response = await axios.post(
@@ -80,6 +85,15 @@ export default function Home() {
       router.push("user/login");
       return null;
     }
+  }
+
+  /**
+   * User Log out.
+   */
+  async function logOut() {
+    localStorage.removeItem("user_id");
+    localStorage.removeItem("token");
+    router.reload();
   }
 
   /**
@@ -204,7 +218,7 @@ export default function Home() {
   }, [vidLatency]);
 
   return (
-    <main className={`flex flex-col min-h-screen items-center justify-start gap-8 p-24`}>
+    <main className={`flex flex-col min-h-screen items-center justify-start gap-5 p-24`}>
       <title>Pedestrian Cell Phone Usage Detection</title>
 
       {/** Title */}
@@ -218,9 +232,17 @@ export default function Home() {
       <div className={`flex flex-col gap-2 items-center`}>
         {/** User Data */}
         {userData ? (
-          <p>{`Logged in as ${userData.name}`}</p>
+          <div className={`flex flex-row gap-3`}>
+            <p>{`Logged in as ${userData.name}`}</p>
+            <p className={`hover:cursor-pointer`} onClick={logOut}>Log Out</p>
+          </div>
         ) : (
-          <p className={`font-italic opacity-50`}>Anonymous</p>
+          <div className={`flex flex-row gap-3`}>
+            <p className={`italic opacity-50`}>Anonymous</p>
+            <p className={`hover:cursor-pointer`} onClick={() => {
+              router.push("user/login");
+            }}>Log In</p>
+          </div>
         )}
 
         {/** Connection Indicator */}
