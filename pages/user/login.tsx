@@ -2,30 +2,31 @@
 
 import React, { useEffect, useState } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
+import { useRouter } from "next/router";
 import axios from 'axios';
 
-import useAuthStore from './userAuthStore';
 
-type UserLoginWithEmail = {
-    email: string,
-    password: string,
-}
+// type UserLoginWithEmail = {
+//     email: string,
+//     password: string,
+// }
 
-type UserLoginWithName = {
-    name: string,
-    password: string
-}
+// type UserLoginWithName = {
+//     name: string,
+//     password: string
+// }
 
-type UserLoginSubmit = {
-    email_or_name: string,
-    password: string,
-}
+// type UserLoginSubmit = {
+//     email_or_name: string,
+//     password: string,
+// }
 
 
 const inputFieldStyle = `flex flex-row w-84 p-2 rounded-lg border w-64 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600`;
 const errorStyle = `flex flex-row h-2 text-red-400 m-0 pl-1 text-sm`
 
 export default function Login() {
+    const router = useRouter();
     const { register, handleSubmit, watch, formState: { errors } } = useForm<UserLoginSubmit>();
     const [pageError, setPageError] = useState<string | null>(null);
 
@@ -51,6 +52,7 @@ export default function Login() {
             localStorage.setItem("user_id", user_id);
             localStorage.setItem("token", token);
             console.log(response);
+            router.push("/")
         }).catch((e) => {
             setPageError(e.response?.data.detail);
         })

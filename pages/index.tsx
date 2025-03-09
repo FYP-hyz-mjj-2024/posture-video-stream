@@ -2,7 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import Indicator from "@/components/Indicator";
 import codes from "@/data/WSCode";
 import { WS_URL } from "@/utils/pathMap";
-
+import axios from "axios";
+import { useRouter } from "next/router";
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -29,7 +30,11 @@ const extractBase64EncodedString = (wsOnMessageEvent: MessageEvent<any>) => {
   }
 };
 
+
 export default function Home() {
+  const router = useRouter();
+  const [userData, setUserData] = useState<User | null>(null);
+
   // Image frame ref of DOM
   const videoFrameRef = useRef<HTMLCanvasElement | null>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
@@ -62,6 +67,36 @@ export default function Home() {
       }
     ],
   });
+
+  async function getUser(userAuth: UserAuth) {
+    try {
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_DB_DOMAIN}/user/get_user`,
+        userAuth,
+      );
+      return response.data;
+    } catch (e) {
+      console.log(e);
+      router.push("user/login");
+      return null;
+    }
+  }
+
+  /**
+   * Retrieve user data using token & id stored in local storage.
+   * If there's no token or id, user had never logged in, therefore
+   * stop retrieving and use anonymous mode.
+   */
+  useEffect(() => {
+    let user_id = localStorage.getItem("user_id");
+    let token = localStorage.getItem("token");
+    if (!user_id || !token) {
+      return;
+    }
+    getUser({ user_id, token }).then((data) => {
+      if (data) setUserData(data);
+    });
+  }, [])
 
   /**
    * Set up websocket video streaming.
@@ -179,22 +214,22 @@ export default function Home() {
         <p className={`font-bold text-[#ff7700]`}>{`</>`}</p>
       </h1>
 
-      {/** Pause Button */}
-      {/* <div
-        className={`hover:cursor-pointer ${!videoFrameRef.current?.src && 'opacity-20'}`}
-        onClick={() => {
-          if (!videoFrameRef.current?.src)
-            return;
-          setIsPaused(!isPaused);
-        }}>
-        {videoFrameRef.current?.src ? (isPaused ? "Resume" : "Pause") : ("No Video Source")}
-      </div> */}
+      {/** Information Bar */}
+      <div className={`flex flex-col gap-2 items-center`}>
+        {/** User Data */}
+        {userData ? (
+          <p>{`Logged in as ${userData.name}`}</p>
+        ) : (
+          <p className={`font-italic opacity-50`}>Anonymous</p>
+        )}
 
-      {/** Connection Indicator */}
-      <div className={`flex flex-row items-center gap-2 p-2`}>
-        <Indicator ws_code={ws_code} />
-        <div>{codes[ws_code].Prompt}</div>
+        {/** Connection Indicator */}
+        <div className={`flex flex-row items-center gap-2 p-2`}>
+          <Indicator ws_code={ws_code} />
+          <div>{codes[ws_code].Prompt}</div>
+        </div>
       </div>
+
 
       {/** Main Panel*/}
       <div className="flex flex-col">

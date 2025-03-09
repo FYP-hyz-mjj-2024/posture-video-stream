@@ -1,23 +1,26 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
+import { useRouter } from "next/router"
 import { useForm, SubmitHandler } from 'react-hook-form';
 import axios from 'axios';
 
 import useAuthStore from './userAuthStore';
 
-type UserRegister = {
-    email: string;
-    name: string;
-    password: string;
-}
 
-type UserRegisterSubmit = UserRegister & { passwordConfirm: string };
+// type UserRegister = {
+//     email: string;
+//     name: string;
+//     password: string;
+// }
+
+// type UserRegisterSubmit = UserRegister & { passwordConfirm: string };
 
 const inputFieldStyle = `flex flex-row w-84 p-2 rounded-lg border w-64 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600`;
 const errorStyle = `flex flex-row h-2 text-red-400 m-0 pl-1 text-sm`
 
 export default function Register() {
+    const router = useRouter();
     const { register, handleSubmit, watch, formState: { errors } } = useForm<UserRegisterSubmit>();
     const [pageError, setPageError] = useState<string | null>(null);
 
@@ -39,6 +42,7 @@ export default function Register() {
             let token = response.data.token;
             localStorage.setItem("user_id", user_id);
             localStorage.setItem("token", token);
+            router.push("./login")
         }).catch((e) => {
             setPageError(e.response?.data.detail);
         })
