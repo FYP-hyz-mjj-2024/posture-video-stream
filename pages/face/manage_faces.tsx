@@ -1,13 +1,16 @@
 "use client";
-
+// Package
 import React, { useEffect, useState } from 'react';
-import { useForm, SubmitHandler } from 'react-hook-form';
 import { useRouter } from "next/router";
 import Image from "next/image";
 import axios from 'axios';
-
-import { guardPage } from '@/lib/auth';
 import moment from "moment";
+import { IoMdArrowBack } from "react-icons/io";
+
+// Local
+import { guardPage } from '@/lib/auth';
+import { NavigationButton } from '@/components/buttons';
+
 
 const buttonStyle = `border rounded-md text-center hover:cursor-pointer select-none`;
 
@@ -64,7 +67,7 @@ export default function ManageFaces() {
         if (userData) {
             setUserData(JSON.parse(userData));
         }
-    });
+    }, []);
 
 
     /**
@@ -97,10 +100,14 @@ export default function ManageFaces() {
 
 
     return (
-        <main className={`flex flex-col min-h-screen items-top justify-start gap-8 p-24`}>
+        <main className={`flex flex-col min-h-screen items-center justify-start gap-8 p-24`}>
             {/** Panel */}
             <div className={`flex flex-col bg-white dark:bg-gray-900 px-20 py-16 w-[80%] rounded-xl justify-center gap-2`}>
-                <div className={`flex flex-row justify-between items-center mb-4`}>
+                {/** Navigation Back */}
+                <NavigationButton to={"/"} text={`Control Panel`} router={router} Icon={IoMdArrowBack} />
+
+                {/** Names */}
+                <div className={`flex flex-row justify-between items-center mb-6`}>
                     <div className={`font-bold text-2xl`}>
                         {`Face Management Dashboard`}
                     </div>
@@ -109,6 +116,8 @@ export default function ManageFaces() {
                         <p className={`text-sm opacity-50`}>{userData?.user_id}</p>
                     </div>
                 </div>
+
+                {/** Tool Bar */}
                 <div className={`flex flex-col w-20 ${buttonStyle} bg-ui-area-green hover:bg-ui-line-green text-white font-bold border border-ui-line-green
                                 h-10 items-center justify-center`}
                     onClick={() => { router.push("./upload_face") }}>

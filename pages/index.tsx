@@ -10,6 +10,8 @@ import {
   CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend
 } from 'chart.js';
 import { getUser } from "@/lib/auth";
+import { NavigationButton } from '@/components/buttons';
+import { IoGrid } from 'react-icons/io5';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -210,33 +212,33 @@ export default function Home() {
         <p className={`font-bold text-[#ff7700]`}>{`</>`}</p>
       </h1>
 
-      {/** Information Bar */}
-      <div className={`flex flex-col gap-2 items-center`}>
-        {/** User Data */}
-        {userData ? (
-          <div className={`flex flex-row gap-3`}>
-            <p>{`Logged in as ${userData.name}`}</p>
-            <p className={`hover:cursor-pointer`} onClick={logOut}>Log Out</p>
-          </div>
-        ) : (
-          <div className={`flex flex-row gap-3`}>
-            <p className={`italic opacity-50`}>Anonymous</p>
-            <p className={`hover:cursor-pointer`} onClick={() => {
-              router.push("user/login");
-            }}>Log In</p>
-          </div>
-        )}
+      {/** Panel*/}
+      <div className={`flex flex-col bg-white dark:bg-gray-900 px-20  py-4 rounded-xl justify-center`}>
+        {/** Information Bar */}
+        <div className={`flex flex-col gap-2 items-center`}>
+          {/** User Data */}
+          {userData ? (
+            <div className={`flex flex-row gap-3`}>
+              <p>{`Logged in as ${userData.name}`}</p>
+              <p className={`hover:cursor-pointer`} onClick={logOut}>Log Out</p>
+            </div>
+          ) : (
+            <div className={`flex flex-row gap-3`}>
+              <p className={`italic opacity-50`}>Anonymous</p>
+              <p className={`hover:cursor-pointer`} onClick={() => {
+                router.push("user/login");
+              }}>Log In</p>
+            </div>
+          )}
 
-        {/** Connection Indicator */}
-        <div className={`flex flex-row items-center gap-2 p-2`}>
-          <Indicator ws_code={ws_code} />
-          <div>{codes[ws_code].Prompt}</div>
+          {/** Connection Indicator */}
+          <div className={`flex flex-row items-center gap-2 p-2`}>
+            <Indicator ws_code={ws_code} />
+            <div>{codes[ws_code].Prompt}</div>
+          </div>
         </div>
-      </div>
 
-
-      {/** Main Panel*/}
-      <div className="flex flex-col">
+        {/** Video and Announced Faces */}
         <div className="flex flex-row">
           {/** Video Frame */}
           {!haveVideoSource ? (
@@ -296,6 +298,11 @@ export default function Home() {
                 }
               }} />
           </div>
+        </div>
+
+        {/** Features */}
+        <div className='flex flex-row gap-2 items-center justify-center mt-4'>
+          <NavigationButton to={"/face/manage_faces"} text={`Manage Faces`} Icon={IoGrid} router={router} />
         </div>
       </div>
 

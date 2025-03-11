@@ -1,5 +1,6 @@
 "use client";
 
+// Package
 import React, { useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { useRouter } from "next/router";
@@ -7,6 +8,7 @@ import Image from "next/image";
 import axios from 'axios';
 import { IoIosPersonAdd } from "react-icons/io";
 
+// Local
 import { guardPage } from '@/lib/auth';
 
 const inputFieldStyle = `flex flex-row w-84 p-2 rounded-lg border w-64 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600`;
