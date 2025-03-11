@@ -39,9 +39,9 @@ export default function Register() {
 
     return (
         <main className={`flex flex-col min-h-screen items-center justify-start gap-8 p-24`}>
-            <div className={`flex flex-col bg-white dark:bg-gray-900 px-20 py-16 rounded-xl gap-10`}>
+            <div className={`flex flex-col bg-white dark:bg-gray-900 px-20 pt-16 pb-8 rounded-xl gap-10`}>
                 <div className={`flex flex-col gap-1`}>
-                    <p className={`text-3xl font-bold`}>Sign Up</p>
+                    <p className={`text-3xl font-bold`}>Register</p>
                     {pageError ? (<p className={errorStyle}>{pageError}</p>) : (<p className={errorStyle}></p>)}
                 </div>
 
@@ -136,14 +136,22 @@ export default function Register() {
                                     (<p className={errorStyle}></p>)
                                 }
                             </div>
-
                         </div>
                     </div>
 
                     {/** Submit Button */}
-                    <input type="submit" className={`flex flex-rowhover:cursor-pointer hover:opacity-80 
+                    <input type="submit"
+                        className={`flex flex-rowhover:cursor-pointer hover:opacity-80 
                             bg-black text-white dark:bg-white dark:text-black
-                            px-7 py-2 rounded-lg mt-5`} />
+                            px-7 py-2 rounded-lg mt-5`}
+                        value={`Register`} />
+
+                    {/** To Login */}
+                    <div
+                        className={`flex flex-row text-align-center items-center justify-center gap-2 mt-8 text-sm opacity-50 hover:cursor-pointer`}
+                        onClick={() => { router.push("./login"); }}>
+                        <p>Already have an account? Login!</p>
+                    </div>
                 </form>
             </div>
         </main>

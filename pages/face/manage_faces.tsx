@@ -113,7 +113,7 @@ export default function ManageFaces() {
                     </div>
                     <div className={`flex flex-col items-end`}>
                         <p>{userData?.name}</p>
-                        <p className={`text-sm opacity-50`}>{userData?.user_id}</p>
+                        <p className={`text-sm opacity-50 max-lg:hidden`}>{userData?.user_id}</p>
                     </div>
                 </div>
 
@@ -146,7 +146,7 @@ export default function ManageFaces() {
                                         <div className={`font-bold`}>
                                             {face.description}
                                         </div>
-                                        <div className={`text-sm opacity-60`}>
+                                        <div className={`text-sm opacity-60 max-lg:hidden`}>
                                             {face.id}
                                         </div>
                                         <div className={`text-sm opacity-60`}>
@@ -177,7 +177,7 @@ export default function ManageFaces() {
                 </div>
 
                 {/** Page Selector */}
-                <div className={`flex flex-row w-[45%] justify-between mx-auto mt-6`}>
+                <div className={`flex flex-row w-[45%] max-lg:w-full justify-between mx-auto mt-6`}>
                     {/** Previous Page */}
                     <div className={`${buttonStyle} border-ui-line dark:border-ui-line-dark hover:bg-ui-area dark:hover:bg-ui-area-dark px-3 pt-0.5 ${curPage <= 0 && `opacity-50`}`}
                         onClick={() => {

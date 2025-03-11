@@ -10,9 +10,12 @@ import { IoIosPersonAdd } from "react-icons/io";
 
 // Local
 import { guardPage } from '@/lib/auth';
+import { NavigationButton } from '@/components/buttons';
+import { IoMdArrowBack } from 'react-icons/io';
 
 const inputFieldStyle = `flex flex-row w-84 p-2 rounded-lg border w-64 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600`;
 const errorStyle = `flex flex-row h-2 text-red-400 m-0 pl-1 text-sm`
+const descStyle = `text-sm text-gray-400 opacity-50 w-[85%]`
 
 export default function UploadFace() {
     const router = useRouter();
@@ -167,36 +170,61 @@ export default function UploadFace() {
         <main className={`flex flex-col min-h-screen items-center justify-start gap-8 p-24`}>
             <form onSubmit={handleSubmit(upload)}>
                 <div className={`flex flex-col bg-white dark:bg-gray-900 px-10 py-10 rounded-xl gap-10`}>
-                    {/** Image upload element. Outline div frame. */}
-                    <div
-                        className={`flex flex-row border bg-gray-200 dark:bg-gray-800 
+                    <div className={`flex flex-col gap-2`}>
+                        {/** Navigation Back */}
+                        <NavigationButton to={"./manage_faces"} text={`Face Management Panel`} router={router} Icon={IoMdArrowBack} />
+
+                        {/** Title */}
+                        <div className={`flex flex-row text-xl font-bold`}>
+                            <p>{`Upload an image`}</p>
+                        </div>
+                    </div>
+
+                    {/** Image upload element. */}
+                    <div className={`flex flex-col gap-2 items-start`}>
+                        {/** Outline div frame.  */}
+                        <div
+                            className={`flex flex-row w-full border bg-gray-200 dark:bg-gray-800 
                                     h-64 items-center justify-center rounded-lg hover:opacity-80`}
-                        onDrop={handleFileInputDrop}
-                        onDragOver={(e) => e.preventDefault()}
-                        onClick={(e) => {
-                            imageInputRef.current?.click();
-                        }}>
+                            onDrop={handleFileInputDrop}
+                            onDragOver={(e) => e.preventDefault()}
+                            onClick={(e) => {
+                                imageInputRef.current?.click();
+                            }}>
 
-                        {/** Clickable Input Element */}
-                        <input
-                            hidden
-                            ref={imageInputRef}
-                            type={`file`}
-                            accept='image/jpeg, image/jpg, image/png'
-                            multiple={false}
-                            onChangeCapture={handleFileInputClick} />
+                            {/** Clickable Input Element */}
+                            <input
+                                hidden
+                                ref={imageInputRef}
+                                type={`file`}
+                                accept='image/jpeg, image/jpg, image/png'
+                                multiple={false}
+                                onChangeCapture={handleFileInputClick} />
 
-                        {/** Image Preview */}
-                        {watch("blob") ? (
-                            <Image
-                                className={`rounded-lg w-48 h-48 object-cover`}
-                                src={watch("blob")}
-                                alt={`Preview`}
-                                width={200}
-                                height={200} />
-                        ) : (
-                            <IoIosPersonAdd className={`w-12 h-12 opacity-50`} />
-                        )}
+                            {/** Image Preview */}
+                            {watch("blob") ? (
+                                <Image
+                                    className={`rounded-lg w-48 h-48 object-cover`}
+                                    src={watch("blob")}
+                                    alt={`Preview`}
+                                    width={200}
+                                    height={200} />
+                            ) : (
+                                <div className={`flex flex-col items-center`}>
+                                    <IoIosPersonAdd className={`w-12 h-12 opacity-50`} />
+                                    <p className={`opacity-50 text-sm`}>{`Supported file formats: jpg, jpeg, png.`}</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/** Description */}
+                        <div className={descStyle}>
+                            <p>{`
+                        Upload an image that contains human face. Make sure that a face is included in the image,
+                        other wise the upload will be rejected.
+                        `}</p>
+                        </div>
+
                     </div>
 
                     {/** Description */}
@@ -204,7 +232,8 @@ export default function UploadFace() {
                         <p className={`text-sm pl-1 font-bold`}>Face Description</p>
                         <textarea
                             className={`${inputFieldStyle} resize-none w-[30em]`}
-                            {...register("description")} />
+                            {...register("description")}
+                            placeholder={`Describe this face. e.g., Name, features, etc.`} />
 
                         {errors.description?.message ?
                             (<p className={errorStyle}>{errors.description.message}</p>) :
