@@ -1,21 +1,103 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
-import { useForm, SubmitHandler } from 'react-hook-form';
+import React, { useEffect, useRef } from 'react';
+import { useForm } from 'react-hook-form';
 import { useRouter } from "next/router";
 import Image from "next/image";
 import axios from 'axios';
+import { IoIosPersonAdd } from "react-icons/io";
 
 import { guardPage } from '@/lib/auth';
-import moment from "moment";
-
-const buttonStyle = `border rounded-md text-center hover:cursor-pointer select-none`;
 
 const inputFieldStyle = `flex flex-row w-84 p-2 rounded-lg border w-64 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600`;
 const errorStyle = `flex flex-row h-2 text-red-400 m-0 pl-1 text-sm`
 
 export default function UploadFace() {
     const router = useRouter();
+
+    const { register, setValue, handleSubmit, watch, formState: { errors } } = useForm<FaceUploadSubmit>();
+    const imageInputRef = useRef<HTMLInputElement>(null);
+    const MAX_FILE_SIZE = 200 * 1024 * 1024;    // 200 MB
+
+    /**
+     * Extract the binary part of the file object and convert it into base64 string.
+     * @param file File object.
+     * @returns 
+     */
+    function fileToBase64(file: File, keepHeader = false): Promise<string> {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => {
+                if (!reader.result) {
+                    return null;
+                }
+                const result = reader.result as string;
+                if (keepHeader) {
+                    resolve(result);
+                } else {
+                    resolve(result.split(',')[1]);
+                }
+            };
+            reader.onerror = error => reject(error);
+        });
+    }
+
+    /**
+     * Handle drop to upload file.
+     * @param event 
+     * @returns 
+     */
+    async function handleDrop(event: React.DragEvent<HTMLDivElement>) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const droppedFileList: File[] = Array.from(event.dataTransfer.files);
+        if (droppedFileList.length > 1) {
+            window.alert("No more than 1 file is allowed.");
+            return;
+        }
+
+        const file = droppedFileList[0];
+        const blob = await fileToBase64(file, true);
+
+        setValue("blob", blob);
+        console.log(droppedFileList);
+    }
+
+    /**
+     * Upload the selected face.
+     * @param faceUploadSubmit Face upload submit data.
+     * @returns 
+     */
+    async function upload(faceUploadSubmit: FaceUploadSubmit) {
+        const user_id = localStorage.getItem("user_id");
+        const token = localStorage.getItem("token");
+
+        if (!user_id || !token) {
+            return;
+        }
+
+        const blob = faceUploadSubmit.blob.split(",")[1];
+
+        const faceUpload: FaceUpload = {
+            user_id: user_id,
+            token: token,
+            blob: blob,
+            description: faceUploadSubmit.description
+        };
+
+        axios.post(
+            `${process.env.NEXT_PUBLIC_DB_DOMAIN}/face/upload_face`,
+            faceUpload
+        ).then((response) => {
+            router.push("./manage_faces");
+        }).catch((e) => {
+            window.alert(e.response?.data.detail);
+        });
+
+        console.log(blob);
+    }
 
     /**
      * Protected page. Need user authorize.
@@ -27,10 +109,74 @@ export default function UploadFace() {
 
     return (
         <main className={`flex flex-col min-h-screen items-center justify-start gap-8 p-24`}>
-            <div className={`flex flex-col bg-white dark:bg-gray-900 px-10 py-10 rounded-xl gap-10`}>
-                <input type={`file`}></input>
-                <textarea className={`border border-ui-line resize-none w-[30em]`} />
-            </div>
+            <form onSubmit={handleSubmit(upload)}>
+                <div className={`flex flex-col bg-white dark:bg-gray-900 px-10 py-10 rounded-xl gap-10`}>
+
+                    <div
+                        className={`flex flex-row border bg-gray-200 dark:border-gray-700 
+                                    h-64 items-center justify-center rounded-lg hover:opacity-80`}
+                        onDrop={handleDrop}
+                        onDragOver={(e) => e.preventDefault()}
+                        onClick={(e) => {
+                            imageInputRef.current?.click();
+                        }}>
+                        <input
+                            hidden
+                            ref={imageInputRef}
+                            type={`file`}
+                            accept='image/jpeg, image/jpg, image/png'
+                            multiple={false}
+                            onChangeCapture={async (e: React.ChangeEvent<HTMLInputElement>) => {
+                                const _fileList = e.target.files;
+                                if (!_fileList || _fileList.length <= 0) {
+                                    alert("Invalid file.");
+                                    return;
+                                }
+                                const fileList = Array.from(_fileList)
+
+                                const file = fileList[0];
+                                if (file.size > MAX_FILE_SIZE) {
+                                    alert(`Your file has size of ${Math.ceil(file.size / (1024 * 1024))} MB, 
+                                            while the maximum allowed is ${Math.ceil(MAX_FILE_SIZE / (1024 * 1024))}.`);
+                                    return;
+                                }
+                                const blob = await fileToBase64(file, true);
+                                setValue("blob", blob);
+                            }} />
+
+                        {/* {watch("file")?.toString()} */}
+
+                        {watch("blob") ? (
+                            <Image
+                                className={`rounded-lg`}
+                                src={watch("blob")}
+                                alt={`Preview`}
+                                width={200}
+                                height={200} />
+                        ) : (
+                            <IoIosPersonAdd className={`w-12 h-12 opacity-50`} />
+                        )}
+                    </div>
+
+                    {/** Description */}
+                    <div className={`flex flex-col gap-1`}>
+                        <p className={`text-sm pl-1 font-bold`}>Face Description</p>
+                        <textarea
+                            className={`${inputFieldStyle} resize-none w-[30em]`}
+                            {...register("description")} />
+
+                        {errors.description?.message ?
+                            (<p className={errorStyle}>{errors.description.message}</p>) :
+                            (<p className={errorStyle}></p>)
+                        }
+                    </div>
+
+                    <input type={`submit`} className={`flex flex-rowhover:cursor-pointer hover:opacity-80 
+                            bg-black text-white dark:bg-white dark:text-black
+                            px-7 py-2 rounded-lg`} />
+
+                </div>
+            </form>
         </main>
     );
 }

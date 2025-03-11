@@ -22,6 +22,21 @@ export default function ManageFaces() {
     const pageMaxNum = 5;
 
     /**
+     * Check for the magic number to determine file type.
+     * @param blob Blob base64 string.
+     * @returns 
+     */
+    function checkFileTypeFromBase64(blob: string) {
+        if (blob.startsWith("iVBORw0KGgo")) {
+            return "png";
+        } else if (blob.startsWith("/9j/")) {
+            return "jpg";
+        } else {
+            throw new DOMException("Invalid file format.");
+        }
+    }
+
+    /**
      * Retrieve faces given a range.
      * @param facesGet User auth and face range.
      * @returns If success, return a list of faces. Otherwise return null.
@@ -90,7 +105,7 @@ export default function ManageFaces() {
                 <div className={`flex flex-col justify-center`}>
                     {/** Title */}
                     <div className={`flex flex-row justify-between border border-ui-line bg-ui-area rounded-tl-lg rounded-tr-lg px-4 py-3`}>
-                        <p className={`font-bold`}>{`${numThisPage} / ${numTotal} faces`}</p>
+                        <p className={`font-bold`}>{`${curPage * pageMaxNum + numThisPage} / ${numTotal} faces`}</p>
                     </div>
 
                     {/** Face List */}
@@ -119,7 +134,7 @@ export default function ManageFaces() {
                                     {/** Face Image */}
                                     <Image
                                         className={`rounded-lg`}
-                                        src={`data:image/png;base64,${face.blob}`}
+                                        src={`data:image/${checkFileTypeFromBase64(face.blob.slice(0, 15))};base64,${face.blob}`}
                                         alt={face.description}
                                         width={70}
                                         height={70} />
