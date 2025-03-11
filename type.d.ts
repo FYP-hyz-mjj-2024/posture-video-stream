@@ -31,6 +31,11 @@ type FacesGet = UserAuth & {
     range_to: number,
 }
 
+type FaceUpload = UserAuth & {
+    blob: string,
+    description: string
+}
+
 interface User {
     user_id: string,
     created_at: string,
