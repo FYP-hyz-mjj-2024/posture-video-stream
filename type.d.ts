@@ -13,7 +13,7 @@ type UserLoginSubmit = {
     password: string,
 }
 
-type UserRegister = {
+interface UserRegister {
     email: string;
     name: string;
     password: string;
@@ -26,9 +26,27 @@ type UserAuth = {
     token: string;
 }
 
+type FacesGet = UserAuth & {
+    range_from: number,
+    range_to: number,
+}
+
 interface User {
     user_id: string,
     created_at: string,
     email: string,
     name: string,
 };
+
+interface Face {
+    id: string,
+    description: string
+    blob: string,
+    uploaded_at: string,
+}
+
+interface FacesGetResult {
+    num_total: number,
+    num_this_page: number,
+    faces: Face[],
+}

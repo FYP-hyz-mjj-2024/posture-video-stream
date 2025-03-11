@@ -9,6 +9,7 @@ import {
   Chart as ChartJS,
   CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend
 } from 'chart.js';
+import { getUser } from "@/lib/auth";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -67,29 +68,6 @@ export default function Home() {
       }
     ],
   });
-
-  /**
-   * Get user data using authentication detials: user_id and token.
-   * @param userAuth User authentication details.
-   * @returns 
-   */
-  async function getUser(userAuth: UserAuth) {
-    try {
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_DB_DOMAIN}/user/get_user`,
-        userAuth,
-      );
-      return response.data;
-    } catch (e) {
-      /**
-       * Possible errors:
-       * 1. Bad token: Expired or invalid;
-       * 2. Server stopped.
-       */
-      console.log(e);
-      return null;
-    }
-  }
 
   /**
    * User Log out.
