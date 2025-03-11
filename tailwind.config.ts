@@ -15,7 +15,9 @@ const config: Config = {
       },
       colors: {
         "ui-line": "#e5e7eb",
+        "ui-line-dark": "#3c434c",
         "ui-area": "#f6f8fa",
+        "ui-area-dark": "#0d1117",
         "ui-line-green": "#1f793a",
         "ui-area-green": "#1f883d",
       }

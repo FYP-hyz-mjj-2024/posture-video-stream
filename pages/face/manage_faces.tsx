@@ -13,6 +13,7 @@ const buttonStyle = `border rounded-md text-center hover:cursor-pointer select-n
 
 export default function ManageFaces() {
     const router = useRouter();
+    const [userData, setUserData] = useState<User | null>(null);
     const [curPage, setCurPage] = useState<number>(0);
     const [faces, setFaces] = useState<Face[]>([]);
 
@@ -59,6 +60,10 @@ export default function ManageFaces() {
      */
     useEffect(() => {
         guardPage(router);
+        const userData = localStorage.getItem("user_data");
+        if (userData) {
+            setUserData(JSON.parse(userData));
+        }
     });
 
 
@@ -92,9 +97,18 @@ export default function ManageFaces() {
 
 
     return (
-        <main className={`flex flex-col min-h-screen items-center justify-start gap-8 p-24`}>
+        <main className={`flex flex-col min-h-screen items-top justify-start gap-8 p-24`}>
             {/** Panel */}
             <div className={`flex flex-col bg-white dark:bg-gray-900 px-20 py-16 w-[80%] rounded-xl justify-center gap-2`}>
+                <div className={`flex flex-row justify-between items-center mb-4`}>
+                    <div className={`font-bold text-2xl`}>
+                        {`Face Management Dashboard`}
+                    </div>
+                    <div className={`flex flex-col items-end`}>
+                        <p>{userData?.name}</p>
+                        <p className={`text-sm opacity-50`}>{userData?.user_id}</p>
+                    </div>
+                </div>
                 <div className={`flex flex-col w-20 ${buttonStyle} bg-ui-area-green hover:bg-ui-line-green text-white font-bold border border-ui-line-green
                                 h-10 items-center justify-center`}
                     onClick={() => { router.push("./upload_face") }}>
@@ -104,7 +118,7 @@ export default function ManageFaces() {
                 {/** Title and face list */}
                 <div className={`flex flex-col justify-center`}>
                     {/** Title */}
-                    <div className={`flex flex-row justify-between border border-ui-line bg-ui-area rounded-tl-lg rounded-tr-lg px-4 py-3`}>
+                    <div className={`flex flex-row justify-between border border-ui-line dark:border-ui-line-dark bg-ui-area dark:bg-ui-area-dark rounded-tl-lg rounded-tr-lg px-4 py-3`}>
                         <p className={`font-bold`}>{`${curPage * pageMaxNum + numThisPage} / ${numTotal} faces`}</p>
                     </div>
 
@@ -114,7 +128,7 @@ export default function ManageFaces() {
 
                             faces.map((face, id) => (
                                 <div key={id} className={
-                                    `flex flex-row border-x border-b border-ui-line px-4 py-3 justify-between
+                                    `flex flex-row border-x border-b border-ui-line dark:border-ui-line-dark px-4 py-3 justify-between
                                 ${id == faces.length - 1 && `rounded-bl-lg rounded-br-lg`}
                                 `}>
 
@@ -133,7 +147,7 @@ export default function ManageFaces() {
 
                                     {/** Face Image */}
                                     <Image
-                                        className={`rounded-lg`}
+                                        className={`rounded-lg w-16 h-16 object-cover`}
                                         src={`data:image/${checkFileTypeFromBase64(face.blob.slice(0, 15))};base64,${face.blob}`}
                                         alt={face.description}
                                         width={70}
@@ -143,7 +157,7 @@ export default function ManageFaces() {
 
                         ) : (
                             <div
-                                className={`flex flex-row border-x border-b border-ui-line px-4 py-3 justify-between
+                                className={`flex flex-row border-x border-b border-ui-line dark:border-ui-line-dark px-4 py-3 justify-between
                                         rounded-bl-lg rounded-br-lg
                                     `}>
                                 No faces
@@ -156,7 +170,7 @@ export default function ManageFaces() {
                 {/** Page Selector */}
                 <div className={`flex flex-row w-[45%] justify-between mx-auto mt-6`}>
                     {/** Previous Page */}
-                    <div className={`${buttonStyle} border-ui-line hover:bg-ui-area px-3 pt-0.5 ${curPage <= 0 && `opacity-50`}`}
+                    <div className={`${buttonStyle} border-ui-line dark:border-ui-line-dark hover:bg-ui-area dark:hover:bg-ui-area-dark px-3 pt-0.5 ${curPage <= 0 && `opacity-50`}`}
                         onClick={() => {
                             if (curPage > 0) {
                                 setCurPage(curPage - 1)
@@ -168,14 +182,14 @@ export default function ManageFaces() {
                     {/** Page List */}
                     {Array.from({ length: Math.min(Math.ceil(numTotal / pageMaxNum) - Math.floor(curPage / 7) * 7, 7) }, (_, i) => Math.floor(curPage / 7) * 7 + i + 1)
                         .map((k, i) => (
-                            <div className={` ${buttonStyle} border-ui-line hover:bg-ui-area w-[2em] h-[2em] pt-0.5 rounded-md ${k - 1 == curPage && `font-bold`}`}
+                            <div className={` ${buttonStyle} border-ui-line dark:border-ui-line-dark hover:bg-ui-area dark:hover:bg-ui-area-dark w-[2em] h-[2em] pt-0.5 rounded-md ${k - 1 == curPage && `font-bold`}`}
                                 onClick={() => { setCurPage(i) }}>
                                 {k}
                             </div>
                         ))}
 
                     {/** Next Page */}
-                    <div className={`${buttonStyle} border-ui-line hover:bg-ui-area px-3 pt-0.5  ${curPage >= Math.ceil(numTotal / pageMaxNum) - 1 && `opacity-50`}`}
+                    <div className={`${buttonStyle} border-ui-line dark:border-ui-line-dark hover:bg-ui-area dark:hover:bg-ui-area-dark px-3 pt-0.5  ${curPage >= Math.ceil(numTotal / pageMaxNum) - 1 && `opacity-50`}`}
                         onClick={() => {
                             if (curPage < Math.ceil(numTotal / pageMaxNum) - 1) {
                                 setCurPage(curPage + 1)

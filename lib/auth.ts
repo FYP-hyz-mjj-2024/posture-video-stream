@@ -33,10 +33,9 @@ export async function guardPage(router: NextRouter) {
     const user_id = localStorage.getItem("user_id");
     const token = localStorage.getItem("token");
 
-
     if (!user_id || !token) {
         router.push("/");
-        return;
+        return null;
     }
 
     getUser({ user_id, token }).then((data) => {
@@ -44,5 +43,7 @@ export async function guardPage(router: NextRouter) {
             router.push("/");
             return;
         }
+        localStorage.setItem("user_data", JSON.stringify(data));
     });
+
 }

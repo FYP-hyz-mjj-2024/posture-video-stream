@@ -14,17 +14,16 @@ const errorStyle = `flex flex-row h-2 text-red-400 m-0 pl-1 text-sm`
 
 export default function UploadFace() {
     const router = useRouter();
-
     const { register, setValue, handleSubmit, watch, formState: { errors } } = useForm<FaceUploadSubmit>();
     const imageInputRef = useRef<HTMLInputElement>(null);
     const MAX_FILE_SIZE = 200 * 1024 * 1024;    // 200 MB
 
     /**
-     * Extract the binary part of the file object and convert it into base64 string.
+     * Convert a file's binary part into base64.
      * @param file File object.
      * @returns 
      */
-    function fileToBase64(file: File, keepHeader = false): Promise<string> {
+    function _fileToBase64(file: File, keepHeader = false): Promise<string> {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
@@ -44,25 +43,76 @@ export default function UploadFace() {
     }
 
     /**
-     * Handle drop to upload file.
-     * @param event 
+     * Receiving a fileList from browser, get the target file's base64.
+     * @param _fileList 
      * @returns 
      */
-    async function handleDrop(event: React.DragEvent<HTMLDivElement>) {
+    async function pruneFileList(_fileList: FileList): Promise<string | null> {
+        // Invalid FileList length.
+        if (!_fileList || _fileList.length <= 0) {
+            alert("Invalid file.");
+            return null;
+        }
+
+        const fileList = Array.from(_fileList);
+
+        // Can only upload one face at a time.
+        if (fileList.length > 1) {
+            alert("Only one file is allowed.");
+            return null;
+        } else if (fileList.length <= 0) {
+            alert("Internal Error: File list is empty.");
+            return null;
+        }
+
+        // Remove the "list" dimension.
+        const file = fileList[0];
+
+        // Check file size.
+        if (file.size > MAX_FILE_SIZE) {
+            alert(`Your file has size of ${Math.ceil(file.size / (1024 * 1024))} MB, 
+                   while the maximum allowed is ${Math.ceil(MAX_FILE_SIZE / (1024 * 1024))}.`);
+            return null;
+        }
+
+        // Keep the headers now as data URL.
+        const blob = await _fileToBase64(file, true);
+        return blob
+    }
+
+    /**
+     * Handle drop to upload file.
+     * @param event HTML div element drag event.
+     * @returns 
+     */
+    async function handleFileInputDrop(event: React.DragEvent<HTMLDivElement>) {
         event.preventDefault();
         event.stopPropagation();
 
-        const droppedFileList: File[] = Array.from(event.dataTransfer.files);
-        if (droppedFileList.length > 1) {
-            window.alert("No more than 1 file is allowed.");
+        const droppedFileList: FileList = event.dataTransfer.files;
+        const blob = await pruneFileList(droppedFileList);
+
+        if (blob) {
+            setValue("blob", blob);
+        }
+    }
+
+    /**
+     * Handle click to upload file.
+     * @param event HTML input element change event.
+     * @returns 
+     */
+    async function handleFileInputClick(event: React.ChangeEvent<HTMLInputElement>) {
+        const selectedFileList: FileList | null = event.target.files;
+        if (!selectedFileList) {
             return;
         }
 
-        const file = droppedFileList[0];
-        const blob = await fileToBase64(file, true);
+        const blob = await pruneFileList(selectedFileList);
 
-        setValue("blob", blob);
-        console.log(droppedFileList);
+        if (blob) {
+            setValue("blob", blob);
+        }
     }
 
     /**
@@ -75,9 +125,12 @@ export default function UploadFace() {
         const token = localStorage.getItem("token");
 
         if (!user_id || !token) {
+            alert("Your login info is expired. Please re-login.");
+            router.push("/");
             return;
         }
 
+        // Remove the header of the base64 string.
         const blob = faceUploadSubmit.blob.split(",")[1];
 
         const faceUpload: FaceUpload = {
@@ -87,6 +140,7 @@ export default function UploadFace() {
             description: faceUploadSubmit.description
         };
 
+        // Upload.
         axios.post(
             `${process.env.NEXT_PUBLIC_DB_DOMAIN}/face/upload_face`,
             faceUpload
@@ -111,44 +165,29 @@ export default function UploadFace() {
         <main className={`flex flex-col min-h-screen items-center justify-start gap-8 p-24`}>
             <form onSubmit={handleSubmit(upload)}>
                 <div className={`flex flex-col bg-white dark:bg-gray-900 px-10 py-10 rounded-xl gap-10`}>
-
+                    {/** Image upload element. Outline div frame. */}
                     <div
-                        className={`flex flex-row border bg-gray-200 dark:border-gray-700 
+                        className={`flex flex-row border bg-gray-200 dark:bg-gray-800 
                                     h-64 items-center justify-center rounded-lg hover:opacity-80`}
-                        onDrop={handleDrop}
+                        onDrop={handleFileInputDrop}
                         onDragOver={(e) => e.preventDefault()}
                         onClick={(e) => {
                             imageInputRef.current?.click();
                         }}>
+
+                        {/** Clickable Input Element */}
                         <input
                             hidden
                             ref={imageInputRef}
                             type={`file`}
                             accept='image/jpeg, image/jpg, image/png'
                             multiple={false}
-                            onChangeCapture={async (e: React.ChangeEvent<HTMLInputElement>) => {
-                                const _fileList = e.target.files;
-                                if (!_fileList || _fileList.length <= 0) {
-                                    alert("Invalid file.");
-                                    return;
-                                }
-                                const fileList = Array.from(_fileList)
+                            onChangeCapture={handleFileInputClick} />
 
-                                const file = fileList[0];
-                                if (file.size > MAX_FILE_SIZE) {
-                                    alert(`Your file has size of ${Math.ceil(file.size / (1024 * 1024))} MB, 
-                                            while the maximum allowed is ${Math.ceil(MAX_FILE_SIZE / (1024 * 1024))}.`);
-                                    return;
-                                }
-                                const blob = await fileToBase64(file, true);
-                                setValue("blob", blob);
-                            }} />
-
-                        {/* {watch("file")?.toString()} */}
-
+                        {/** Image Preview */}
                         {watch("blob") ? (
                             <Image
-                                className={`rounded-lg`}
+                                className={`rounded-lg w-48 h-48 object-cover`}
                                 src={watch("blob")}
                                 alt={`Preview`}
                                 width={200}
