@@ -179,29 +179,44 @@ export default function ManageFaces() {
                 {/** Page Selector */}
                 <div className={`flex flex-row w-[45%] max-lg:w-full justify-between mx-auto mt-6`}>
                     {/** Previous Page */}
-                    <div className={`${buttonStyle} border-ui-line dark:border-ui-line-dark hover:bg-ui-area dark:hover:bg-ui-area-dark px-3 pt-0.5 ${curPage <= 0 && `opacity-50`}`}
+                    <div className={`${buttonStyle} border-ui-line dark:border-ui-line-dark 
+                                    hover:bg-ui-area dark:hover:bg-ui-area-dark 
+                                    px-3 pt-0.5 ${curPage <= 0 && `opacity-50`}`}
                         onClick={() => {
                             if (curPage > 0) {
-                                setCurPage(curPage - 1)
+                                setCurPage(curPage - 1);
                             }
                         }}>
-                        {`Prev`}
+                        <p>{`Prev`}</p>
                     </div>
 
-                    {/** Page List */}
-                    {Array.from({ length: Math.min(Math.ceil(numTotal / pageMaxNum) - Math.floor(curPage / 7) * 7, 7) }, (_, i) => Math.floor(curPage / 7) * 7 + i + 1)
-                        .map((k, i) => (
-                            <div className={` ${buttonStyle} border-ui-line dark:border-ui-line-dark hover:bg-ui-area dark:hover:bg-ui-area-dark w-[2em] h-[2em] pt-0.5 rounded-md ${k - 1 == curPage && `font-bold`}`}
-                                onClick={() => { setCurPage(i) }}>
-                                {k}
-                            </div>
-                        ))}
+                    {/** 
+                     * Extendable Page List 
+                     * 0 1 2 3 4 5 6        off = 0     curPage - 7 < 0
+                     * 1 2 3 4 5 6 7        off = 1     curPage = 7, curPage - 6 = 1
+                     * 2 3 4 5 6 7 8        off = 2     curPage = 8, curPage - 6 = 2
+                     * */}
+                    {Array.from(
+                        { length: Math.min(Math.ceil(numTotal / pageMaxNum), 7) },
+                        (_, i) => i + Math.max(0, curPage - 6)     // Define array value
+                    ).map((page, i) => (
+                        <div key={i}
+                            className={`${buttonStyle} border-ui-line 
+                                        dark:border-ui-line-dark hover:bg-ui-area 
+                                        dark:hover:bg-ui-area-dark w-[2em] h-[2em] 
+                                        pt-0.5 rounded-md ${page == curPage && `font-bold`}`}
+                            onClick={() => { setCurPage(page); }}>
+                            {page}
+                        </div>
+                    ))}
 
                     {/** Next Page */}
-                    <div className={`${buttonStyle} border-ui-line dark:border-ui-line-dark hover:bg-ui-area dark:hover:bg-ui-area-dark px-3 pt-0.5  ${curPage >= Math.ceil(numTotal / pageMaxNum) - 1 && `opacity-50`}`}
+                    <div className={`${buttonStyle} border-ui-line dark:border-ui-line-dark 
+                                    hover:bg-ui-area dark:hover:bg-ui-area-dark px-3 pt-0.5  
+                                    ${curPage >= Math.ceil(numTotal / pageMaxNum) - 1 && `opacity-50`}`}
                         onClick={() => {
                             if (curPage < Math.ceil(numTotal / pageMaxNum) - 1) {
-                                setCurPage(curPage + 1)
+                                setCurPage(curPage + 1);
                             }
                         }}>
                         <p>{`Next`}</p>
