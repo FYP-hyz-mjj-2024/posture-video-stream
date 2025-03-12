@@ -13,7 +13,7 @@ import { handleFileInputClick, handleFileInputDrop } from "@/lib/files";
  * @param props.formProps.watch The watch object defined at the mother component.
  * @returns 
  */
-export const ImageUploader = (props: {
+export const ImageInput = (props: {
     EmptyIcon: IconType,
     EmptyDesc: string,
     formProps: {
@@ -28,7 +28,7 @@ export const ImageUploader = (props: {
 
     return (
         <div
-            className={`flex flex-row w-[50%] border bg-gray-200 dark:bg-gray-800 
+            className={`flex flex-row w-full border bg-gray-200 dark:bg-gray-800 
                 h-64 items-center justify-center rounded-lg hover:opacity-80`}
             onDrop={(event) => {
                 handleFileInputDrop(event, (blob) => {
