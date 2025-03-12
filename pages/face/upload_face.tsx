@@ -4,7 +4,6 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { useRouter } from "next/router";
-import Image from "next/image";
 import axios from 'axios';
 import { IoIosPersonAdd } from "react-icons/io";
 
@@ -12,7 +11,6 @@ import { IoIosPersonAdd } from "react-icons/io";
 import { guardPage } from '@/lib/auth';
 import { NavigationButton } from '@/components/buttons';
 import { IoMdArrowBack } from 'react-icons/io';
-import { handleFileInputClick, handleFileInputDrop } from "@/lib/files";
 import { ImageInput } from '@/components/Inputs';
 import { debounce } from '@/lib/utils';
 

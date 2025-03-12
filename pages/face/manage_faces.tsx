@@ -5,12 +5,12 @@ import { useRouter } from "next/router";
 import Image from "next/image";
 import axios from 'axios';
 import moment from "moment";
-import { IoMdArrowBack } from "react-icons/io";
+import { IoMdArrowBack, IoMdTrash } from "react-icons/io";
 
 // Local
 import { guardPage } from '@/lib/auth';
 import { NavigationButton, Button } from '@/components/buttons';
-
+import { debounce } from '@/lib/utils';
 
 const buttonStyle = `border rounded-md text-center hover:cursor-pointer select-none`;
 
@@ -59,6 +59,36 @@ export default function ManageFaces() {
             return null;
         }
     }
+
+
+    async function deleteFace(face_id: string) {
+        const user_id = localStorage.getItem("user_id");
+        const token = localStorage.getItem("token");
+
+        if (!user_id || !token) {
+            alert("Your login info is expired. Please re-login.");
+            router.push("/");
+            return;
+        }
+
+        const faceDelete = {
+            user_id: user_id,
+            token: token,
+            face_id: face_id
+        };
+
+        axios.post(
+            `${process.env.NEXT_PUBLIC_DB_DOMAIN}/face/delete_face`,
+            faceDelete
+        ).then((response) => {
+            router.reload();
+        }).catch((e) => {
+            window.alert(e.response?.data.detail);
+        });
+    }
+
+    // Debounce with 5 ms delay.
+    const d_deleteFace = debounce(deleteFace, 500);
 
     /**
      * Protected page. Need user authorize.
@@ -158,12 +188,25 @@ export default function ManageFaces() {
                                     </div>
 
                                     {/** Face Image */}
-                                    <Image
-                                        className={`rounded-lg w-16 h-16 object-cover`}
-                                        src={`data:image/${checkFileTypeFromBase64(face.blob.slice(0, 15))};base64,${face.blob}`}
-                                        alt={face.description}
-                                        width={70}
-                                        height={70} />
+                                    <div className={`flex flex-row items-center gap-4`}>
+                                        <div className={`flex flex-row items-center justify-center w-[2em] h-[2em] 
+                                                         opacity-20 hover:opacity-100 rounded-full hover:cursor-pointer 
+                                                         hover:bg-black transition-all`}
+                                            onClick={() => {
+                                                if (!window.confirm(`Are you sure to delete ${face.id}?`)) {
+                                                    return;
+                                                }
+                                                d_deleteFace(face.id);
+                                            }}>
+                                            <IoMdTrash />
+                                        </div>
+                                        <Image
+                                            className={`rounded-lg w-16 h-16 object-cover`}
+                                            src={`data:image/${checkFileTypeFromBase64(face.blob.slice(0, 15))};base64,${face.blob}`}
+                                            alt={face.description}
+                                            width={70}
+                                            height={70} />
+                                    </div>
                                 </div>
                             ))
 

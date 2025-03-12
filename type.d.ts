@@ -67,3 +67,7 @@ interface FaceCompareResults {
     desc_scores: FaceCompare[],
     query_time: number,
 };
+
+type FaceDelete = UserAuth & {
+    face_id: string,
+};
