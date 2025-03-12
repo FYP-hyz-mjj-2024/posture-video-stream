@@ -60,7 +60,11 @@ export default function ManageFaces() {
         }
     }
 
-
+    /**
+     * Delete a face.
+     * @param face_id Face id. 
+     * @returns 
+     */
     async function deleteFace(face_id: string) {
         const user_id = localStorage.getItem("user_id");
         const token = localStorage.getItem("token");
