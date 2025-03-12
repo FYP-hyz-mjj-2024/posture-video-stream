@@ -57,3 +57,13 @@ interface FacesGetResult {
     num_this_page: number,
     faces: Face[],
 };
+
+interface FaceCompare {
+    description: string,
+    score: number,
+};
+
+interface FaceCompareResults {
+    desc_scores: FaceCompare[],
+    query_time: number,
+};

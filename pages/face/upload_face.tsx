@@ -12,6 +12,8 @@ import { IoIosPersonAdd } from "react-icons/io";
 import { guardPage } from '@/lib/auth';
 import { NavigationButton } from '@/components/buttons';
 import { IoMdArrowBack } from 'react-icons/io';
+import { handleFileInputClick, handleFileInputDrop } from "@/lib/files";
+import { ImageUploader } from '@/components/Inputs';
 
 const inputFieldStyle = `flex flex-row w-84 p-2 rounded-lg border w-64 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600`;
 const errorStyle = `flex flex-row h-2 text-red-400 m-0 pl-1 text-sm`
@@ -21,111 +23,13 @@ export default function UploadFace() {
     const router = useRouter();
     const { register, setValue, handleSubmit, watch, formState: { errors } } = useForm<FaceUploadSubmit>();
     const imageInputRef = useRef<HTMLInputElement>(null);
-    const MAX_FILE_SIZE = 200 * 1024 * 1024;    // 200 MB
-
-    /**
-     * Convert a file's binary part into base64.
-     * @param file File object.
-     * @returns 
-     */
-    function _fileToBase64(file: File, keepHeader = false): Promise<string> {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => {
-                if (!reader.result) {
-                    return null;
-                }
-                const result = reader.result as string;
-                if (keepHeader) {
-                    resolve(result);
-                } else {
-                    resolve(result.split(',')[1]);
-                }
-            };
-            reader.onerror = error => reject(error);
-        });
-    }
-
-    /**
-     * Receiving a fileList from browser, get the target file's base64.
-     * @param _fileList 
-     * @returns 
-     */
-    async function pruneFileList(_fileList: FileList): Promise<string | null> {
-        // Invalid FileList length.
-        if (!_fileList || _fileList.length <= 0) {
-            alert("Invalid file.");
-            return null;
-        }
-
-        const fileList = Array.from(_fileList);
-
-        // Can only upload one face at a time.
-        if (fileList.length > 1) {
-            alert("Only one file is allowed.");
-            return null;
-        } else if (fileList.length <= 0) {
-            alert("Internal Error: File list is empty.");
-            return null;
-        }
-
-        // Remove the "list" dimension.
-        const file = fileList[0];
-
-        // Check file size.
-        if (file.size > MAX_FILE_SIZE) {
-            alert(`Your file has size of ${Math.ceil(file.size / (1024 * 1024))} MB, 
-                   while the maximum allowed is ${Math.ceil(MAX_FILE_SIZE / (1024 * 1024))}.`);
-            return null;
-        }
-
-        // Keep the headers now as data URL.
-        const blob = await _fileToBase64(file, true);
-        return blob
-    }
-
-    /**
-     * Handle drop to upload file.
-     * @param event HTML div element drag event.
-     * @returns 
-     */
-    async function handleFileInputDrop(event: React.DragEvent<HTMLDivElement>) {
-        event.preventDefault();
-        event.stopPropagation();
-
-        const droppedFileList: FileList = event.dataTransfer.files;
-        const blob = await pruneFileList(droppedFileList);
-
-        if (blob) {
-            setValue("blob", blob);
-        }
-    }
-
-    /**
-     * Handle click to upload file.
-     * @param event HTML input element change event.
-     * @returns 
-     */
-    async function handleFileInputClick(event: React.ChangeEvent<HTMLInputElement>) {
-        const selectedFileList: FileList | null = event.target.files;
-        if (!selectedFileList) {
-            return;
-        }
-
-        const blob = await pruneFileList(selectedFileList);
-
-        if (blob) {
-            setValue("blob", blob);
-        }
-    }
 
     /**
      * Upload the selected face.
      * @param faceUploadSubmit Face upload submit data.
      * @returns 
      */
-    async function upload(faceUploadSubmit: FaceUploadSubmit) {
+    async function uploadFace(faceUploadSubmit: FaceUploadSubmit) {
         const user_id = localStorage.getItem("user_id");
         const token = localStorage.getItem("token");
 
@@ -168,8 +72,10 @@ export default function UploadFace() {
 
     return (
         <main className={`flex flex-col min-h-screen items-center justify-start gap-8 p-24`}>
-            <form onSubmit={handleSubmit(upload)}>
+            <form onSubmit={handleSubmit(uploadFace)}>
                 <div className={`flex flex-col bg-white dark:bg-gray-900 px-10 py-10 rounded-xl gap-10`}>
+
+                    {/** Title Bar */}
                     <div className={`flex flex-col gap-2`}>
                         {/** Navigation Back */}
                         <NavigationButton to={"./manage_faces"} text={`Face Management Panel`} router={router} Icon={IoMdArrowBack} />
@@ -180,42 +86,18 @@ export default function UploadFace() {
                         </div>
                     </div>
 
-                    {/** Image upload element. */}
+                    {/** Image upload element and description. */}
                     <div className={`flex flex-col gap-2 items-start`}>
-                        {/** Outline div frame.  */}
-                        <div
-                            className={`flex flex-row w-full border bg-gray-200 dark:bg-gray-800 
-                                    h-64 items-center justify-center rounded-lg hover:opacity-80`}
-                            onDrop={handleFileInputDrop}
-                            onDragOver={(e) => e.preventDefault()}
-                            onClick={(e) => {
-                                imageInputRef.current?.click();
-                            }}>
 
-                            {/** Clickable Input Element */}
-                            <input
-                                hidden
-                                ref={imageInputRef}
-                                type={`file`}
-                                accept='image/jpeg, image/jpg, image/png'
-                                multiple={false}
-                                onChangeCapture={handleFileInputClick} />
-
-                            {/** Image Preview */}
-                            {watch("blob") ? (
-                                <Image
-                                    className={`rounded-lg w-48 h-48 object-cover`}
-                                    src={watch("blob")}
-                                    alt={`Preview`}
-                                    width={200}
-                                    height={200} />
-                            ) : (
-                                <div className={`flex flex-col items-center`}>
-                                    <IoIosPersonAdd className={`w-12 h-12 opacity-50`} />
-                                    <p className={`opacity-50 text-sm`}>{`Supported file formats: jpg, jpeg, png.`}</p>
-                                </div>
-                            )}
-                        </div>
+                        <ImageUploader
+                            EmptyIcon={IoIosPersonAdd}
+                            EmptyDesc={`Supported Format: jpg/jpeg, png.`}
+                            formProps={{
+                                imageInputRef: imageInputRef,
+                                watchField: "blob",
+                                setValue: setValue,
+                                watch: watch,
+                            }} />
 
                         {/** Description */}
                         <div className={descStyle}>
