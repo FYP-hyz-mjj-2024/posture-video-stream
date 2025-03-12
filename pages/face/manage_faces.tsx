@@ -9,20 +9,22 @@ import { IoMdArrowBack } from "react-icons/io";
 
 // Local
 import { guardPage } from '@/lib/auth';
-import { NavigationButton } from '@/components/buttons';
+import { NavigationButton, Button } from '@/components/buttons';
 
 
 const buttonStyle = `border rounded-md text-center hover:cursor-pointer select-none`;
 
 export default function ManageFaces() {
     const router = useRouter();
+
+    // Data
     const [userData, setUserData] = useState<User | null>(null);
-    const [curPage, setCurPage] = useState<number>(0);
     const [faces, setFaces] = useState<Face[]>([]);
 
+    // Pagination
     const [numThisPage, setNumThisPage] = useState<number>(0);
     const [numTotal, setNumTotal] = useState<number>(0);
-
+    const [curPage, setCurPage] = useState<number>(0);
     const pageMaxNum = 5;
 
     /**
@@ -118,11 +120,12 @@ export default function ManageFaces() {
                 </div>
 
                 {/** Tool Bar */}
-                <div className={`flex flex-col w-20 ${buttonStyle} bg-ui-area-green hover:bg-ui-line-green text-white font-bold border border-ui-line-green
-                                h-10 items-center justify-center`}
-                    onClick={() => { router.push("./upload_face") }}>
-                    <p>Upload</p>
-                </div>
+                <Button
+                    type={"Emphasize"}
+                    text={`Upload`}
+                    callback={() => { router.push("./upload_face") }}
+                    disableWhen={false}
+                    excessStyles={`w-20 h-10`} />
 
                 {/** Title and face list */}
                 <div className={`flex flex-col justify-center`}>
@@ -177,18 +180,25 @@ export default function ManageFaces() {
                 </div>
 
                 {/** Page Selector */}
-                <div className={`flex flex-row w-[45%] max-lg:w-full justify-between mx-auto mt-6`}>
-                    {/** Previous Page */}
-                    <div className={`${buttonStyle} border-ui-line dark:border-ui-line-dark 
-                                    hover:bg-ui-area dark:hover:bg-ui-area-dark 
-                                    px-3 pt-0.5 ${curPage <= 0 && `opacity-50`}`}
-                        onClick={() => {
+                <div className={`flex flex-row w-[60%] max-lg:w-full justify-between mx-auto mt-6`}>
+                    {/** Start Page */}
+                    <Button
+                        type={"Regular"}
+                        text={`Start`}
+                        callback={() => { setCurPage(0); }}
+                        disableWhen={curPage <= 0}
+                        excessStyles={`w-[3.5em]`} />
+
+                    <Button
+                        type={"Regular"}
+                        text={`Prev`}
+                        callback={() => {
                             if (curPage > 0) {
                                 setCurPage(curPage - 1);
                             }
-                        }}>
-                        <p>{`Prev`}</p>
-                    </div>
+                        }}
+                        disableWhen={curPage <= 0}
+                        excessStyles={`w-[4em]`} />
 
                     {/** 
                      * Extendable Page List 
@@ -211,16 +221,28 @@ export default function ManageFaces() {
                     ))}
 
                     {/** Next Page */}
-                    <div className={`${buttonStyle} border-ui-line dark:border-ui-line-dark 
-                                    hover:bg-ui-area dark:hover:bg-ui-area-dark px-3 pt-0.5  
-                                    ${curPage >= Math.ceil(numTotal / pageMaxNum) - 1 && `opacity-50`}`}
-                        onClick={() => {
+                    <Button
+                        type={"Regular"}
+                        text={`Next`}
+                        callback={() => {
                             if (curPage < Math.ceil(numTotal / pageMaxNum) - 1) {
                                 setCurPage(curPage + 1);
                             }
-                        }}>
-                        <p>{`Next`}</p>
-                    </div>
+                        }}
+                        disableWhen={curPage >= Math.ceil(numTotal / pageMaxNum) - 1}
+                        excessStyles={`w-[4em]`} />
+
+                    {/** End Page */}
+                    <Button
+                        type={"Regular"}
+                        text={`End`}
+                        callback={() => {
+                            if (curPage < Math.ceil(numTotal / pageMaxNum) - 1) {
+                                setCurPage(Math.ceil(numTotal / pageMaxNum) - 1);
+                            }
+                        }}
+                        disableWhen={curPage >= Math.ceil(numTotal / pageMaxNum) - 1}
+                        excessStyles={`w-[3.5em]`} />
                 </div>
             </div>
         </main>
