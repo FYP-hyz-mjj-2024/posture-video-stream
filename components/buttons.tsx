@@ -32,13 +32,15 @@ export const Button = (props: {
     let style;
     if (type === "Regular") {
         style = `
+            flex flex-col items-center justify-center
             border-ui-line dark:border-ui-line-dark 
-            hover:bg-ui-area dark:hover:bg-ui-area-dark px-3 pt-0.5
+            hover:bg-ui-area dark:hover:bg-ui-area-dark px-3
         `
     } else if (type === "Emphasize") {
         style = `
-            flex flex-col border-ui-line-green bg-ui-area-green 
-            hover:bg-ui-line-green text-white font-bold items-center justify-center
+            flex flex-col items-center justify-center
+            border-ui-line-green bg-ui-area-green 
+            hover:bg-ui-line-green text-white font-bold 
             `
     } else {
         style = ""

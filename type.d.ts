@@ -58,16 +58,27 @@ interface FacesGetResult {
     faces: Face[],
 };
 
-interface FaceCompare {
+/** Compare Faces  */
+
+type FaceCompareSubmit = {
+    blob: string,
+};
+
+type FaceCompare = UserAuth & FaceCompareSubmit;
+
+interface FaceCompareResult {
     description: string,
     score: number,
 };
 
 interface FaceCompareResults {
-    desc_scores: FaceCompare[],
+    desc_scores: FaceCompareResult[],
     query_time: number,
 };
+
+/** Delete Faces */
 
 type FaceDelete = UserAuth & {
     face_id: string,
 };
+

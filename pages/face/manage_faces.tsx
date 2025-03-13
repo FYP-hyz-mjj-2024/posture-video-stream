@@ -154,12 +154,20 @@ export default function ManageFaces() {
                 </div>
 
                 {/** Tool Bar */}
-                <Button
-                    type={"Emphasize"}
-                    text={`Upload`}
-                    callback={() => { router.push("./upload_face") }}
-                    disableWhen={false}
-                    excessStyles={`w-20 h-10`} />
+                <div className={`flex flex-row items-center justify-start gap-2`}>
+                    <Button
+                        type={"Emphasize"}
+                        text={`Upload`}
+                        callback={() => { router.push("./upload_face") }}
+                        disableWhen={false}
+                        excessStyles={`w-20 h-10`} />
+                    <Button
+                        type={"Regular"}
+                        text={`Compare`}
+                        callback={() => { router.push("./compare_face") }}
+                        disableWhen={false}
+                        excessStyles={`w-25 h-10`} />
+                </div>
 
                 {/** Title and face list */}
                 <div className={`flex flex-col justify-center`}>
@@ -174,9 +182,9 @@ export default function ManageFaces() {
 
                             faces.map((face, id) => (
                                 <div key={id} className={
-                                    `flex flex-row border-x border-b border-ui-line dark:border-ui-line-dark px-4 py-3 justify-between
-                                ${id == faces.length - 1 && `rounded-bl-lg rounded-br-lg`}
-                                `}>
+                                    `flex flex-row border-x border-b border-ui-line 
+                                    dark:border-ui-line-dark px-4 py-3 justify-between
+                                    ${id == faces.length - 1 && `rounded-bl-lg rounded-br-lg`}`}>
 
                                     {/** Face description and ID */}
                                     <div>
