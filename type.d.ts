@@ -1,3 +1,14 @@
+/** 
+ * User
+ */
+interface User {
+    user_id: string,
+    created_at: string,
+    email: string,
+    name: string,
+};
+
+/** User Login */
 type UserLoginWithEmail = {
     email: string,
     password: string,
@@ -13,6 +24,7 @@ type UserLoginSubmit = {
     password: string,
 };
 
+/** Register User */
 interface UserRegister {
     email: string;
     name: string;
@@ -21,35 +33,27 @@ interface UserRegister {
 
 type UserRegisterSubmit = UserRegister & { passwordConfirm: string };
 
+/** User Authorization */
 type UserAuth = {
     user_id: string;
     token: string;
 };
 
-type FacesGet = UserAuth & {
-    range_from: number,
-    range_to: number,
-};
 
-type FaceUploadSubmit = {
-    blob: string,
-    description: string
-};
-
-type FaceUpload = UserAuth & FaceUploadSubmit;
-
-interface User {
-    user_id: string,
-    created_at: string,
-    email: string,
-    name: string,
-};
-
+/**
+ * Face
+ */
 interface Face {
     id: string,
     description: string
     blob: string,
     uploaded_at: string,
+};
+
+/** Get Faces */
+type FacesGet = UserAuth & {
+    range_from: number,
+    range_to: number,
 };
 
 interface FacesGetResult {
@@ -58,8 +62,16 @@ interface FacesGetResult {
     faces: Face[],
 };
 
-/** Compare Faces  */
+/** Upload Face */
+type FaceUploadSubmit = {
+    blob: string,
+    description: string
+};
 
+type FaceUpload = UserAuth & FaceUploadSubmit;
+
+
+/** Compare Face  */
 type FaceCompareSubmit = {
     blob: string,
 };
@@ -76,8 +88,7 @@ interface FaceCompareResults {
     query_time: number,
 };
 
-/** Delete Faces */
-
+/** Delete Face */
 type FaceDelete = UserAuth & {
     face_id: string,
 };
