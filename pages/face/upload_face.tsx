@@ -13,6 +13,7 @@ import { NavigationButton } from '@/components/buttons';
 import { IoMdArrowBack } from 'react-icons/io';
 import { ImageInput } from '@/components/Inputs';
 import { debounce } from '@/lib/utils';
+import { uploadFace } from '@/lib/server';
 
 const inputFieldStyle = `flex flex-row p-2 rounded-lg border w-full bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600`;
 const errorStyle = `flex flex-row h-2 text-red-400 m-0 pl-1 text-sm`
@@ -21,42 +22,6 @@ export default function UploadFace() {
     const router = useRouter();
     const { register, setValue, handleSubmit, watch, formState: { errors } } = useForm<FaceUploadSubmit>();
     const imageInputRef = useRef<HTMLInputElement>(null);
-
-    /**
-     * Upload the selected face.
-     * @param faceUploadSubmit Face upload submit data.
-     * @returns 
-     */
-    async function uploadFace(faceUploadSubmit: FaceUploadSubmit) {
-        const user_id = localStorage.getItem("user_id");
-        const token = localStorage.getItem("token");
-
-        if (!user_id || !token) {
-            alert("Your login info is expired. Please re-login.");
-            router.push("/");
-            return;
-        }
-
-        // Remove the header of the base64 string.
-        const blob = faceUploadSubmit.blob.split(",")[1];
-
-        const faceUpload: FaceUpload = {
-            user_id: user_id,
-            token: token,
-            blob: blob,
-            description: faceUploadSubmit.description
-        };
-
-        // Upload.
-        axios.post(
-            `${process.env.NEXT_PUBLIC_DB_DOMAIN}/face/upload_face`,
-            faceUpload
-        ).then((response) => {
-            router.push("./manage_faces");
-        }).catch((e) => {
-            window.alert(e.response?.data.detail);
-        });
-    }
 
     // Debounce with 5 ms delay.
     const d_uploadFace = debounce(uploadFace, 500);
@@ -68,10 +33,22 @@ export default function UploadFace() {
         guardPage(router);
     });
 
-
     return (
         <main className={`flex flex-col min-h-screen items-center justify-start gap-8 p-24`}>
-            <form onSubmit={handleSubmit(d_uploadFace)}>
+            <form onSubmit={handleSubmit((data) => {
+                d_uploadFace(data, {
+                    onAuthFailCallback: () => {
+                        alert("Your login info is expired. Please re-login.");
+                        router.push("/");
+                    },
+                    onSuccessCallback: (response) => {
+                        router.push("./manage_faces");
+                    },
+                    onFailCallback: (e) => {
+                        window.alert(e.response?.data.detail);
+                    },
+                });
+            })}>
 
                 {/** Panel */}
                 <div className={`flex flex-col max-w-[40em] px-10 py-10 rounded-xl gap-10 items-center bg-white dark:bg-gray-900`}>

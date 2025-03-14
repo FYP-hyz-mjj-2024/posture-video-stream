@@ -13,9 +13,7 @@ import { NavigationButton } from '@/components/buttons';
 import { IoMdArrowBack } from 'react-icons/io';
 import { ImageInput } from '@/components/Inputs';
 import { debounce } from '@/lib/utils';
-
-const inputFieldStyle = `flex flex-row p-2 rounded-lg border w-full bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600`;
-const errorStyle = `flex flex-row h-2 text-red-400 m-0 pl-1 text-sm`
+import { compareFace } from '@/lib/server';
 
 export default function CompareFace() {
     const router = useRouter();
@@ -24,48 +22,8 @@ export default function CompareFace() {
 
     const [faceCompareResults, setFaceCompareResults] = useState<FaceCompareResult[]>([]);
 
-    /**
-     * Upload the selected face.
-     * @param faceCompareSubmit Face upload submit data.
-     * @returns 
-     */
-    async function compareFace(faceCompareSubmit: FaceCompareSubmit) {
-        const user_id = localStorage.getItem("user_id");
-        const token = localStorage.getItem("token");
-
-        if (!user_id || !token) {
-            alert("Your login info is expired. Please re-login.");
-            router.push("/");
-            return;
-        }
-
-        // Remove the header of the base64 string.
-        const blob = faceCompareSubmit.blob.split(",")[1];
-
-        const faceCompare: FaceCompare = {
-            user_id: user_id,
-            token: token,
-            blob: blob,
-        };
-
-        // Upload.
-        axios.post(
-            `${process.env.NEXT_PUBLIC_DB_DOMAIN}/face/compare_face`,
-            faceCompare
-        ).then((response) => {
-            if (!response) {
-                return;
-            }
-            const _faceCompareResults: FaceCompareResults = response.data;
-            setFaceCompareResults(_faceCompareResults.desc_scores.slice(0, 5));
-            console.log(_faceCompareResults);
-        }).catch((e) => {
-            window.alert(e.response?.data.detail);
-        });
-    }
-
     // Debounce with 5 ms delay.
-    const d_uploadFace = debounce(compareFace, 500);
+    const d_compareFace = debounce(compareFace, 500);
 
     /**
      * Protected page. Need user authorize.
@@ -77,7 +35,21 @@ export default function CompareFace() {
 
     return (
         <main className={`flex flex-col min-h-screen items-center justify-start gap-8 p-24`}>
-            <form onSubmit={handleSubmit(d_uploadFace)}>
+            <form onSubmit={handleSubmit((data) => {
+                d_compareFace(data, {
+                    onAuthFailCallback: () => {
+                        alert("Your login info is expired. Please re-login.");
+                        router.push("/");
+                    },
+                    onSuccessCallback: (response) => {
+                        const _faceCompareResults: FaceCompareResults = response.data;
+                        setFaceCompareResults(_faceCompareResults.desc_scores.slice(0, 1));
+                    },
+                    onFailCallback: (e) => {
+                        window.alert(e.response?.data.detail);
+                    },
+                })
+            })}>
 
                 {/** Panel */}
                 <div className={`flex flex-col max-w-[40em] px-10 py-10 rounded-xl gap-10 items-center bg-white dark:bg-gray-900`}>
