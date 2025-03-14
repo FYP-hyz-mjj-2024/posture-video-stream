@@ -278,6 +278,10 @@ export default function Home() {
                       src={`data:image/jpeg;base64,${v}`}
                       className={`w-full`}
                       onClick={() => {
+                        if (!userData) {
+                          return;
+                        }
+
                         d_compareFace(
                           { blob: `data:image/jpeg;base64,${v}` } as FaceCompareSubmit,
                           {
@@ -338,9 +342,11 @@ export default function Home() {
         </div>
 
         {/** Features */}
-        <div className='flex flex-row gap-2 items-center justify-center mt-4'>
-          <NavigationButton to={"/face/manage_faces"} text={`Manage Faces`} Icon={IoGrid} router={router} />
-        </div>
+        {userData && (
+          <div className='flex flex-row gap-2 items-center justify-center mt-4'>
+            <NavigationButton to={"/face/manage_faces"} text={`Manage Faces`} Icon={IoGrid} router={router} />
+          </div>
+        )}
       </div>
     </main>
   );
