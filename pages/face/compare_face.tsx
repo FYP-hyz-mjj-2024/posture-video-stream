@@ -48,7 +48,7 @@ export default function CompareFace() {
                     onFailCallback: (e) => {
                         window.alert(e.response?.data.detail);
                     },
-                })
+                });
             })}>
 
                 {/** Panel */}

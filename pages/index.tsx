@@ -1,17 +1,23 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Indicator from "@/components/Indicator";
+import { IoGrid } from 'react-icons/io5';
+import { NavigationButton } from '@/components/buttons';
+
 import codes from "@/data/WSCode";
 import { WS_URL } from "@/utils/pathMap";
-import axios from "axios";
 import { useRouter } from "next/router";
+
+
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend
 } from 'chart.js';
+
+
 import { getUser } from "@/lib/auth";
-import { NavigationButton } from '@/components/buttons';
-import { IoGrid } from 'react-icons/io5';
+import { compareFace } from '@/lib/server';
+import { debounce } from "@/lib/utils"
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -38,6 +44,9 @@ export default function Home() {
   const router = useRouter();
   const [userData, setUserData] = useState<User | null>(null);
 
+  // Debounce face compare for 500 seconds.
+  const d_compareFace = debounce(compareFace, 500);
+
   // Image frame ref of DOM
   const videoFrameRef = useRef<HTMLCanvasElement | null>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
@@ -53,6 +62,7 @@ export default function Home() {
 
   // List of base64 strings of the announced faces
   const [announcedFaces, setAnnouncedFaces] = useState<string[]>([]);
+  const [selectedName, setSelectedName] = useState<string | null>(null);
 
   // Local display settings
   const [isPaused, setIsPaused] = useState<boolean>(false);
@@ -202,7 +212,7 @@ export default function Home() {
   }, [vidLatency]);
 
   return (
-    <main className={`flex flex-col min-h-screen items-center justify-start gap-5 p-24`}>
+    <main className={`flex flex-col min-h-screen items-center justify-start gap-5 p-12`}>
       <title>Pedestrian Cell Phone Usage Detection</title>
 
       {/** Title */}
@@ -211,6 +221,10 @@ export default function Home() {
         Pedestrian Cell Phone Usage Detection
         <p className={`font-bold text-[#ff7700]`}>{`</>`}</p>
       </h1>
+
+      <div>
+        {selectedName ? (<p>{selectedName}</p>) : (<p>No selected names.</p>)}
+      </div>
 
       {/** Panel*/}
       <div className={`flex flex-col bg-white dark:bg-gray-900 px-20  py-4 rounded-xl justify-center`}>
@@ -242,7 +256,7 @@ export default function Home() {
         <div className="flex flex-row">
           {/** Video Frame */}
           {!haveVideoSource ? (
-            <div className={`flex items-center justify-center w-[600px] h-[400px] border border-white`}>
+            <div className={`flex items-center justify-center w-[600px] h-[400px] border border-gray-400`}>
               <div className={`mx-auto`}>
                 {codes[ws_code].VideoPrompt}
               </div>
@@ -251,16 +265,39 @@ export default function Home() {
             <canvas
               ref={videoFrameRef}
               // alt="Video Frame"
-              className={`select-none drag-none w-[600px] h-[400px] border border-white`} />
+              className={`select-none drag-none w-[600px] h-[400px] border border-gray-400`} />
           )}
 
           {/** Announced Face Frames */}
-          <div className="flex border border-white pt-3 gap-3 flex-col items-center w-36">
+          <div className="flex border-y border-r border-gray-400 pt-3 gap-3 flex-col items-center w-36">
             {
               announcedFaces?.length > 0 ?
                 (announcedFaces?.map((v, k) => (
-                  <img key={k} src={`data:image/jpeg;base64,${v}`}
-                    className={`w-[80%] max-lg:h-4/5`} />
+                  <div className={`w-[80%] max-lg:h-4/5 hover:cursor-pointer hover:opacity-50`}>
+                    <img key={k}
+                      src={`data:image/jpeg;base64,${v}`}
+                      className={`w-full`}
+                      onClick={() => {
+                        d_compareFace(
+                          { blob: `data:image/jpeg;base64,${v}` } as FaceCompareSubmit,
+                          {
+                            onAuthFailCallback: () => {
+                              alert("Your login info is expired. Please re-login.");
+                              router.push("/");
+                            },
+                            onSuccessCallback: (response) => {
+                              const _faceCompareResults: FaceCompareResults = response.data;
+                              const _selectedName = `${_faceCompareResults.desc_scores[0].description} - ${_faceCompareResults.desc_scores[0].score}`;
+                              setSelectedName(_selectedName);
+                              console.log(_faceCompareResults);
+                            },
+                            onFailCallback: (e) => {
+                              // window.alert(e.response?.data.detail);
+                              console.log(e);
+                            },
+                          });
+                      }} />
+                  </div>
                 ))) : (
                   <p className="w-full text-center">No Faces Announced</p>
                 )
@@ -269,7 +306,7 @@ export default function Home() {
         </div>
 
         {/** Video Latency Panel */}
-        <div className='flex flex-col border border-white align-center justify-center gap-2'>
+        <div className='flex flex-col border-b border-x border-gray-400 align-center justify-center gap-2'>
 
           {/** Video Latency Text */}
           <div className={`flex flew-row w-full gap-2 justify-center`}>
@@ -305,11 +342,6 @@ export default function Home() {
           <NavigationButton to={"/face/manage_faces"} text={`Manage Faces`} Icon={IoGrid} router={router} />
         </div>
       </div>
-
-
-
-
-
     </main>
   );
 }
