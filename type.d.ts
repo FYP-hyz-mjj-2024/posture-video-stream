@@ -88,6 +88,14 @@ interface FaceCompareResults {
     query_time: number,
 };
 
+/** Update face */
+type FaceUpdateSubmit = {
+    face_id: string,
+    description: string,
+};
+
+type FaceUpdate = UserAuth & FaceUpdateSubmit;
+
 /** Delete Face */
 type FaceDelete = UserAuth & {
     face_id: string,

@@ -11,6 +11,7 @@ import { IoMdArrowBack, IoMdTrash } from "react-icons/io";
 import { guardPage } from '@/lib/auth';
 import { NavigationButton, Button } from '@/components/buttons';
 import { debounce } from '@/lib/utils';
+import { FaceItem } from '@/components/FaceItem';
 
 const buttonStyle = `border rounded-md text-center hover:cursor-pointer select-none`;
 
@@ -26,21 +27,6 @@ export default function ManageFaces() {
     const [numTotal, setNumTotal] = useState<number>(0);
     const [curPage, setCurPage] = useState<number>(0);
     const pageMaxNum = 5;
-
-    /**
-     * Check for the magic number to determine file type.
-     * @param blob Blob base64 string.
-     * @returns 
-     */
-    function checkFileTypeFromBase64(blob: string) {
-        if (blob.startsWith("iVBORw0KGgo")) {
-            return "png";
-        } else if (blob.startsWith("/9j/")) {
-            return "jpg";
-        } else {
-            throw new DOMException("Invalid file format.");
-        }
-    }
 
     /**
      * Retrieve faces given a range.
@@ -59,40 +45,6 @@ export default function ManageFaces() {
             return null;
         }
     }
-
-    /**
-     * Delete a face.
-     * @param face_id Face id. 
-     * @returns 
-     */
-    async function deleteFace(face_id: string) {
-        const user_id = localStorage.getItem("user_id");
-        const token = localStorage.getItem("token");
-
-        if (!user_id || !token) {
-            alert("Your login info is expired. Please re-login.");
-            router.push("/");
-            return;
-        }
-
-        const faceDelete = {
-            user_id: user_id,
-            token: token,
-            face_id: face_id
-        };
-
-        axios.post(
-            `${process.env.NEXT_PUBLIC_DB_DOMAIN}/face/delete_face`,
-            faceDelete
-        ).then((response) => {
-            router.reload();
-        }).catch((e) => {
-            window.alert(e.response?.data.detail);
-        });
-    }
-
-    // Debounce with 5 ms delay.
-    const d_deleteFace = debounce(deleteFace, 500);
 
     /**
      * Protected page. Need user authorize.
@@ -179,52 +131,9 @@ export default function ManageFaces() {
                     {/** Face List */}
                     <div className={`flex flex-col`}>
                         {faces.length > 0 ? (
-
                             faces.map((face, id) => (
-                                <div key={id} className={
-                                    `flex flex-row border-x border-b border-ui-line 
-                                    dark:border-ui-line-dark px-4 py-3 justify-between
-                                    ${id == faces.length - 1 && `rounded-bl-lg rounded-br-lg`}`}>
-
-                                    {/** Face description and ID */}
-                                    <div>
-                                        <div className={`font-bold`}>
-                                            {face.description}
-                                        </div>
-                                        <div className={`text-sm opacity-60 max-lg:hidden`}>
-                                            {face.id}
-                                        </div>
-                                        <div className={`text-sm opacity-60`}>
-                                            {moment(face.uploaded_at).format("YYYY-MM-DD HH:mm:ss Z")}
-                                        </div>
-                                    </div>
-
-                                    {/** Face Image */}
-                                    <div className={`flex flex-row items-center gap-4`}>
-                                        {/** Delete Button */}
-                                        <div className={`flex flex-row items-center justify-center w-[2em] h-[2em] 
-                                                         opacity-20 hover:opacity-100 rounded-full hover:cursor-pointer 
-                                                         hover:bg-black hover:text-white transition-all`}
-                                            onClick={() => {
-                                                if (!window.confirm(`Are you sure to delete ${face.id}?`)) {
-                                                    return;
-                                                }
-                                                d_deleteFace(face.id);
-                                            }}>
-                                            <IoMdTrash />
-                                        </div>
-
-                                        {/** Image */}
-                                        <Image
-                                            className={`rounded-lg w-16 h-16 object-cover`}
-                                            src={`data:image/${checkFileTypeFromBase64(face.blob.slice(0, 15))};base64,${face.blob}`}
-                                            alt={face.description}
-                                            width={70}
-                                            height={70} />
-                                    </div>
-                                </div>
+                                <FaceItem key={id} arrId={id} face={face} faces={faces} />
                             ))
-
                         ) : (
                             <div
                                 className={`flex flex-row border-x border-b border-ui-line dark:border-ui-line-dark px-4 py-3 justify-between

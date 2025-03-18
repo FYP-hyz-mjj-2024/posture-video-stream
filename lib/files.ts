@@ -25,6 +25,21 @@ export function _fileToBase64(file: File, keepHeader = false): Promise<string> {
 }
 
 /**
+ * Check for the magic number to determine file type.
+ * @param blob Blob base64 string.
+ * @returns 
+ */
+export function checkFileTypeFromBase64(blob: string) {
+    if (blob.startsWith("iVBORw0KGgo")) {
+        return "png";
+    } else if (blob.startsWith("/9j/")) {
+        return "jpg";
+    } else {
+        throw new DOMException("Invalid file format.");
+    }
+}
+
+/**
  * Receiving a fileList from browser, get the target file's base64.
  * @param _fileList FileList object. 
  * @returns The base64 encoded binary of the first file in the file list.

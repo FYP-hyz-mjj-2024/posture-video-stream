@@ -1,4 +1,5 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
+import { callback } from "chart.js/helpers";
 
 /**
  * Upload a face, and get the comparasion result.
@@ -98,6 +99,78 @@ export async function uploadFace(
         if (!response) {
             return;
         }
+        callbacks.onSuccessCallback(response);
+    }).catch((e) => {
+        callbacks.onFailCallback(e);
+    });
+}
+
+export async function updateFace(
+    faceUpdateSubmit: FaceUpdateSubmit,
+    callbacks: {
+        onAuthFailCallback: () => void,
+        onSuccessCallback: (response: AxiosResponse<FaceCompareResults>) => void,
+        onFailCallback: (e: any) => void
+    }
+) {
+    const user_id = localStorage.getItem("user_id");
+    const token = localStorage.getItem("token");
+
+    if (!user_id || !token) {
+        alert("Your login info is expired. Please re-login.");
+        callbacks.onAuthFailCallback();
+        return;
+    }
+
+    const faceUpdate: FaceUpdate = {
+        user_id: user_id,
+        token: token,
+        face_id: faceUpdateSubmit.face_id,
+        description: faceUpdateSubmit.description
+    };
+
+    axios.post(
+        `${process.env.NEXT_PUBLIC_DB_DOMAIN}/face/update_face`,
+        faceUpdate
+    ).then((response) => {
+        callbacks.onSuccessCallback(response);
+    }).catch((e) => {
+        callbacks.onFailCallback(e);
+    });
+}
+
+/**
+ * Delete a face.
+ * @param face_id Face id. 
+ * @returns 
+ */
+export async function deleteFace(
+    face_id: string,
+    callbacks: {
+        onAuthFailCallback: () => void,
+        onSuccessCallback: (response: AxiosResponse<FaceCompareResults>) => void,
+        onFailCallback: (e: any) => void
+    }
+) {
+    const user_id = localStorage.getItem("user_id");
+    const token = localStorage.getItem("token");
+
+    if (!user_id || !token) {
+        alert("Your login info is expired. Please re-login.");
+        callbacks.onAuthFailCallback();
+        return;
+    }
+
+    const faceDelete = {
+        user_id: user_id,
+        token: token,
+        face_id: face_id
+    };
+
+    axios.post(
+        `${process.env.NEXT_PUBLIC_DB_DOMAIN}/face/delete_face`,
+        faceDelete
+    ).then((response) => {
         callbacks.onSuccessCallback(response);
     }).catch((e) => {
         callbacks.onFailCallback(e);
