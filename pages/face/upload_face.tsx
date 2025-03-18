@@ -1,7 +1,7 @@
 "use client";
 
 // Package
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { useRouter } from "next/router";
 import axios from 'axios';
@@ -20,6 +20,7 @@ const errorStyle = `flex flex-row h-2 text-red-400 m-0 pl-1 text-sm`
 
 export default function UploadFace() {
     const router = useRouter();
+    const [isLoading, setIsLoading] = useState<boolean>(false);
     const { register, setValue, handleSubmit, watch, formState: { errors } } = useForm<FaceUploadSubmit>();
     const imageInputRef = useRef<HTMLInputElement>(null);
 
@@ -36,15 +37,19 @@ export default function UploadFace() {
     return (
         <main className={`flex flex-col min-h-screen items-center justify-start gap-8 p-24`}>
             <form onSubmit={handleSubmit((data) => {
+                setIsLoading(true);
                 d_uploadFace(data, {
                     onAuthFailCallback: () => {
+                        setIsLoading(false);
                         alert("Your login info is expired. Please re-login.");
                         router.push("/");
                     },
                     onSuccessCallback: (response) => {
+                        setIsLoading(false);
                         router.push("./manage_faces");
                     },
                     onFailCallback: (e) => {
+                        setIsLoading(false);
                         window.alert(e.response?.data.detail);
                     },
                 });
@@ -116,13 +121,19 @@ export default function UploadFace() {
                         }
                     </div>
 
-                    <input
-                        type={`submit`}
-                        className={`
+                    {isLoading ? (
+                        <div>
+                            <p>{`Loading`}</p>
+                        </div>
+                    ) : (
+                        <input
+                            type={`submit`}
+                            className={`
                             flex flex-row hover:cursor-pointer hover:opacity-80 
                             bg-black text-white dark:bg-white dark:text-black
                             px-7 py-2 rounded-lg`}
-                        value={`Upload`} />
+                            value={`Upload`} />
+                    )}
 
                 </div>
             </form>

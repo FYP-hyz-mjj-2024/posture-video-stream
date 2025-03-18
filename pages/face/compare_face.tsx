@@ -17,6 +17,8 @@ import { compareFace } from '@/lib/server';
 
 export default function CompareFace() {
     const router = useRouter();
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+
     const { register, setValue, handleSubmit, watch, formState: { errors } } = useForm<FaceCompareSubmit>();
     const imageInputRef = useRef<HTMLInputElement>(null);
 
@@ -36,16 +38,21 @@ export default function CompareFace() {
     return (
         <main className={`flex flex-col min-h-screen items-center justify-start gap-8 p-24`}>
             <form onSubmit={handleSubmit((data) => {
+                setIsLoading(true);
+                setFaceCompareResults([]);
                 d_compareFace(data, {
                     onAuthFailCallback: () => {
+                        setIsLoading(false);
                         alert("Your login info is expired. Please re-login.");
                         router.push("/");
                     },
                     onSuccessCallback: (response) => {
+                        setIsLoading(false);
                         const _faceCompareResults: FaceCompareResults = response.data;
-                        setFaceCompareResults(_faceCompareResults.desc_scores.slice(0, 1));
+                        setFaceCompareResults(_faceCompareResults.desc_scores.slice(0, 2));
                     },
                     onFailCallback: (e) => {
+                        setIsLoading(false);
                         window.alert(e.response?.data.detail);
                     },
                 });
@@ -121,13 +128,19 @@ export default function CompareFace() {
                         </div>
                     </div>
 
-                    <input
-                        type={`submit`}
-                        className={`
+                    {isLoading ? (
+                        <div>
+                            <p>{`Loading`}</p>
+                        </div>
+                    ) : (
+                        <input
+                            type={`submit`}
+                            className={`
                             flex flex-row hover:cursor-pointer hover:opacity-80 
                             bg-black text-white dark:bg-white dark:text-black
                             px-7 py-2 rounded-lg`}
-                        value={`Upload`} />
+                            value={`Compare`} />
+                    )}
 
                 </div>
             </form>
