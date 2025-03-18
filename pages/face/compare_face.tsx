@@ -95,7 +95,7 @@ export default function CompareFace() {
 
                     {/** Description */}
                     <div className={`flex flex-col gap-1 w-full`}>
-                        <p className={`text-sm pl-1 font-bold`}>Face Description</p>
+                        <p className={`text-sm pl-1 font-bold`}>Comparasion Result</p>
                         <div>
                             {
                                 faceCompareResults.map((result, i) => (

@@ -97,7 +97,17 @@ export default function UploadFace() {
                         <p className={`text-sm pl-1 font-bold`}>Face Description</p>
                         <textarea
                             className={`${inputFieldStyle} resize-none `}
-                            {...register("description")}
+                            {...register("description", {
+                                required: true,
+                                maxLength: {
+                                    value: 256,
+                                    message: "Max description length is 256 characters.",
+                                },
+                                minLength: {
+                                    value: 2,
+                                    message: "Description should at least contain 2 characters."
+                                }
+                            })}
                             placeholder={`Describe this face. e.g., Name, features, etc.`} />
 
                         {errors.description?.message ?

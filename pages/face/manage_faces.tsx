@@ -201,9 +201,10 @@ export default function ManageFaces() {
 
                                     {/** Face Image */}
                                     <div className={`flex flex-row items-center gap-4`}>
+                                        {/** Delete Button */}
                                         <div className={`flex flex-row items-center justify-center w-[2em] h-[2em] 
                                                          opacity-20 hover:opacity-100 rounded-full hover:cursor-pointer 
-                                                         hover:bg-black transition-all`}
+                                                         hover:bg-black hover:text-white transition-all`}
                                             onClick={() => {
                                                 if (!window.confirm(`Are you sure to delete ${face.id}?`)) {
                                                     return;
@@ -212,6 +213,8 @@ export default function ManageFaces() {
                                             }}>
                                             <IoMdTrash />
                                         </div>
+
+                                        {/** Image */}
                                         <Image
                                             className={`rounded-lg w-16 h-16 object-cover`}
                                             src={`data:image/${checkFileTypeFromBase64(face.blob.slice(0, 15))};base64,${face.blob}`}

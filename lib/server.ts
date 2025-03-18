@@ -25,6 +25,10 @@ export async function compareFace(
     }
 
     // Remove the header of the base64 string.
+    if (!faceCompareSubmit.blob) {
+        alert("No file is selected.");
+        return;
+    }
     const blob = faceCompareSubmit.blob.split(",")[1];
 
     const faceCompare: FaceCompare = {
@@ -73,6 +77,10 @@ export async function uploadFace(
     }
 
     // Remove the header of the base64 string.
+    if (!faceUploadSubmit.blob) {
+        alert("No file is selected.");
+        return;
+    }
     const blob = faceUploadSubmit.blob.split(",")[1];
 
     const faceUpload: FaceUpload = {
