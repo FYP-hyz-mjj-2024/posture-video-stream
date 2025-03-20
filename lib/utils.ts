@@ -1,7 +1,10 @@
 import { useCallback } from "react";
 
 /**
- * Debounce an operation with a customizable delay.
+ * A custom hook that wraps a function with a debounce timer.
+ * It debounces an operation with a customizable delay.
+ * 
+ * Debouncing: 
  * Every call of the function will reset the timer.
  * Only the last call of the function will be invoked.
  * @param fn The call back function.

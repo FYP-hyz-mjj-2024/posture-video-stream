@@ -1,42 +1,43 @@
+// Site Packages
 import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from "next/router";
 import { IoGrid } from 'react-icons/io5';
-
-
-import codes from "@/data/WSCode";
-import { WS_URL } from "@/utils/pathMap";
-import { NavigationButton } from '@/components/buttons';
-import Indicator from "@/components/Indicator";
-
-
-
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend
 } from 'chart.js';
 
+// Local UI Components
+import { NavigationButton } from '@/components/buttons';
+import Indicator from "@/components/Indicator";
 
-import { getUser } from "@/lib/auth";
+// Local Data Components
+import codes from "@/data/WSCode";
+import { WS_URL } from "@/utils/pathMap";
+import { getUser, logOut } from "@/lib/auth";
 import { compareFace } from '@/lib/server';
 import { useDebounce } from "@/lib/utils"
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+ChartJS.register(
+  CategoryScale, LinearScale, PointElement, LineElement,
+  Title, Tooltip, Legend
+);
 
 
 /**
  * Given a websocket onMessage event, extract the base64 string.
- * @param wsOnMessageEvent 
+ * @param wsOnMessageEvent Message event.
  * @returns 
  */
-const extractBase64EncodedString = (wsOnMessageEvent: MessageEvent<any>) => {
+const _getBase64FromWSMsg = (wsOnMessageEvent: MessageEvent<string>) => {
   try {
     let byte_arr = JSON.parse(wsOnMessageEvent.data).data;
     let byte_string = String.fromCharCode.apply(null, byte_arr);
-    let parsedJson = JSON.parse(byte_string);
+    let parsedJson: WSMessages = JSON.parse(byte_string);
     return parsedJson;
   } catch (e) {
-    console.log(e);
+    console.log(`Unable to resolve message. Error:${e}`);
     return null;
   }
 };
@@ -62,12 +63,11 @@ export default function Home() {
   // Video source existence flag
   const [haveVideoSource, setHaveVideoSource] = useState<boolean>(false);
 
-  // List of base64 strings of the announced faces
+  // List of headerless base64 strings of the announced faces
   const [announcedFaces, setAnnouncedFaces] = useState<string[]>([]);
   const [selectedName, setSelectedName] = useState<string | null>(null);
 
-  // Local display settings
-  const [isPaused, setIsPaused] = useState<boolean>(false);
+  // Latency chart settings.
   const [chartData, setChartData] = useState({
     labels: [] as String[],
     datasets: [
@@ -77,20 +77,9 @@ export default function Home() {
         fill: true,
         backgroundColor: 'rgba(75,192,192,0.4)',
         borderColor: 'rgba(75,192,192,1)',
-        // pointRadius: 0,
-        // pointHitRadius: 0
       }
     ],
   });
-
-  /**
-   * User Log out.
-   */
-  async function logOut() {
-    localStorage.removeItem("user_id");
-    localStorage.removeItem("token");
-    router.reload();
-  }
 
   /**
    * Retrieve user data using token & id stored in local storage.
@@ -112,10 +101,9 @@ export default function Home() {
    * Set up websocket video streaming.
    */
   useEffect(() => {
-    // if (videoFrameRef.current?.src && !haveVideoSource) {
-    //   // No video source
-    //   videoFrameRef.current.src = "";
-    // }
+    /**
+     * The image object to render video frames on the canvas.
+     */
     let image = imageRef.current;
     if (!image) {
       image = new Image();
@@ -130,30 +118,31 @@ export default function Home() {
     };
 
     ws.onmessage = (event: MessageEvent) => {
-      if (isPaused)   // If manually paused, doesn't react to the message.
-        return;
-
       // Data frame info: Either video frame or face announcing.
-      const dataframeInfo = extractBase64EncodedString(event);
+      const wsMsg: WSMessages | null = _getBase64FromWSMsg(event);
 
       // Receive terminate message, terminate streaming.
-      if (!dataframeInfo || dataframeInfo.terminate) {
+      if (!wsMsg || (wsMsg as WSTerminateMsg).terminate) {
         if (videoFrameRef.current) {
-          // videoFrameRef.current.src = "";
           setHaveVideoSource(false);
         }
         setVidLatency(null);
         return;
       }
 
-      // Extract video frame
-      if (videoFrameRef.current && imageRef.current && dataframeInfo.frameBase64) {
-        // videoFrameRef.current.src = `data:image/jpeg;base64,${dataframeInfo.frameBase64}`;
+      /**
+       * Received a video frame message from websocket.
+       * Decode and render the base64 message on canvas.
+       */
+      if (
+        videoFrameRef.current && imageRef.current &&
+        (wsMsg as WSVideoFrameMsg).frameBase64
+      ) {
         const canvas = videoFrameRef.current as HTMLCanvasElement;
         const ctx = canvas.getContext('2d');
         if (ctx) {
-
-          imageRef.current.src = `data:image/jpeg;base64,${dataframeInfo.frameBase64}`;
+          // Fixed to use jpeg in the inference backend.
+          imageRef.current.src = `data:image/jpeg;base64,${(wsMsg as WSVideoFrameMsg).frameBase64}`;
           imageRef.current.onload = () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
@@ -161,18 +150,36 @@ export default function Home() {
         }
       }
 
-      // Update face frame
-      if (videoFrameRef.current && dataframeInfo.announced_face_frames) {
-        setAnnouncedFaces(prevAnnouncedFaces => [...dataframeInfo.announced_face_frames, ...prevAnnouncedFaces].slice(0, 3));
+      /**
+       * Received a face announce message from websocket.
+       * Decode the list of base64 faces and render in the list.
+       * Push the new faces on top of the old ones.
+       */
+      if (
+        videoFrameRef.current &&
+        (wsMsg as WSFaceAnnounceMsg).announced_face_frames
+      ) {
+        setAnnouncedFaces((prevAnnouncedFaces) =>
+          [
+            ...(wsMsg as WSFaceAnnounceMsg).announced_face_frames,  // New faces
+            ...prevAnnouncedFaces   // Old ones
+          ].slice(0, 3));
       }
 
-      // Receive a non-terminate message, set viideo source flag to true.
+      /**
+       * Receive a non-terminate message, 
+       * set the have-video-source flag to true.
+       */
       if (!haveVideoSource) {
         setHaveVideoSource(true);
       }
 
-      // Update message latency.
-      setVidLatency(Date.now() / 1000 - parseFloat(dataframeInfo.timestamp));
+      /**
+       * Update message latency.
+       */
+      setVidLatency(Date.now() / 1000 - parseFloat(
+        (wsMsg as WSVideoFrameMsg | WSFaceAnnounceMsg).timestamp)
+      );
     };
 
     ws.onerror = function (e: any) {
@@ -187,7 +194,7 @@ export default function Home() {
     return () => {
       ws.close();
     };
-  }, [isPaused, haveVideoSource]);
+  }, []);
 
   /**
    * Setup video latency chart.
@@ -211,7 +218,7 @@ export default function Home() {
         }
       ]
     })
-  }, [vidLatency, chartData.datasets, chartData.labels]);
+  }, [vidLatency]);
 
   return (
     <main className={`flex flex-col min-h-screen items-center justify-start gap-5 p-12`}>
@@ -236,14 +243,20 @@ export default function Home() {
           {userData ? (
             <div className={`flex flex-row gap-3`}>
               <p>{`Logged in as ${userData.name}`}</p>
-              <p className={`hover:cursor-pointer`} onClick={logOut}>Log Out</p>
+              <p className={`hover:cursor-pointer`} onClick={() => {
+                logOut(router);
+              }}>
+                {`Log Out`}
+              </p>
             </div>
           ) : (
             <div className={`flex flex-row gap-3`}>
               <p className={`italic opacity-50`}>Anonymous</p>
               <p className={`hover:cursor-pointer`} onClick={() => {
                 router.push("user/login");
-              }}>Log In</p>
+              }}>
+                {`Login`}
+              </p>
             </div>
           )}
 

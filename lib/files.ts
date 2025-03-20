@@ -1,11 +1,14 @@
 import imageCompression, { Options } from 'browser-image-compression';
 
-export const MAX_FILE_SIZE = 200 * 1024 * 1024;    // 200 MB
+export const MAX_SUBMIT_FILE_SIZE = 200 * 1024 * 1024;    // 200 MB
 
 /**
  * Convert a file's binary part into base64.
  * @param file File object.
- * @returns 
+ * @param keepHeader Whether to keep the header in the base64 string.
+ * Keeping the header will result in a data url. Otherwise this function
+ * returns a bare base64 string.
+ * @returns Promise of the base64 string or data url.
  */
 export function _fileToBase64(file: File, keepHeader = false): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -28,23 +31,27 @@ export function _fileToBase64(file: File, keepHeader = false): Promise<string> {
 
 
 /**
- * Construct a Blob object using data URL. Note that
+ * Construct a File object using data URL. Note that
  * a data URL is basically a base64 string with a 
  * header:
  * 
  * data:image/png;base64,ivB......
+ * 
+ * where "ivB..." is the base64 part that contains the
+ * actual information.
  * @param dataURL Data URL to construct the Blob object.
- * @returns 
+ * @returns The constructed file using the data url.
  */
 export function _dataURLtoFile(dataURL: string): File {
-    // Match mime type
+    // Match mime type & file type.
     const matches = dataURL.match(/^data:(image\/(png|jpeg|jpg));base64,(.*)$/);
     if (!matches) {
         throw new Error("Invalid Base64 format");
     }
-
     const mimeType = matches[1];
     const fileType = mimeType.split("/")[1];
+
+    // Decode base64 string.
     const byteString = atob(matches[3]);
     const arrayBuffer = new ArrayBuffer(byteString.length);
     const uint8Array = new Uint8Array(arrayBuffer);
@@ -55,6 +62,7 @@ export function _dataURLtoFile(dataURL: string): File {
 
     const fileName = `face_upload_${Date.now().toString()}.${fileType}`;
 
+    // Write the decoded string into the file object.
     return new File([uint8Array], fileName, { type: mimeType });
 };
 
@@ -62,8 +70,10 @@ export function _dataURLtoFile(dataURL: string): File {
 /**
  * Compress a dataURL of an image to a base64 string (headerless) with
  * the specified options.
- * @param dataURL 
- * @returns 
+ * @param dataURL The data url of the image. (base64 string with headers)
+ * @param options Options to compress the image. 
+ * Check https://github.com/Donaldcwl/browser-image-compression
+ * @returns The headerless base64 string of the compressed image.
  */
 export async function _compressImage(dataURL: string, options: Options): Promise<string> {
     // Convert data url to file, compress file.
@@ -80,9 +90,9 @@ export async function _compressImage(dataURL: string, options: Options): Promise
 /**
  * Check for the magic number to determine file type.
  * @param blob Blob base64 string.
- * @returns 
+ * @returns File type.
  */
-export function checkFileTypeFromBase64(blob: string) {
+export function checkFileTypeFromBase64(blob: string): string {
     if (blob.startsWith("iVBORw0KGgo")) {
         return "png";
     } else if (blob.startsWith("/9j/")) {
@@ -119,9 +129,9 @@ export async function pruneFileList(_fileList: FileList): Promise<string | null>
     const file = fileList[0];
 
     // Check file size.
-    if (file.size > MAX_FILE_SIZE) {
+    if (file.size > MAX_SUBMIT_FILE_SIZE) {
         alert(`Your file has size of ${Math.ceil(file.size / (1024 * 1024))} MB, 
-                   while the maximum allowed is ${Math.ceil(MAX_FILE_SIZE / (1024 * 1024))}.`);
+                   while the maximum allowed is ${Math.ceil(MAX_SUBMIT_FILE_SIZE / (1024 * 1024))}.`);
         return null;
     }
 

@@ -2,6 +2,16 @@ import axios from "axios"
 import { NextRouter } from "next/router";
 
 /**
+ * User Log out.
+ * @param router NextRouter object.
+ */
+export async function logOut(router: NextRouter) {
+    localStorage.removeItem("user_id");
+    localStorage.removeItem("token");
+    router.reload();
+}
+
+/**
  * Get user data using authentication detials: user_id and token.
  * @param userAuth User authentication details.
  * @returns 
