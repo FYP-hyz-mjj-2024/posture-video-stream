@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import axios from "axios";
-import { debounce } from "@/lib/utils";
+import { useDebounce } from "@/lib/utils";
 import moment from "moment";
 import { IoMdTrash } from "react-icons/io";
 import { AiFillEdit } from "react-icons/ai";
@@ -27,8 +27,8 @@ export const FaceItem = (props: { arrId: number, face: Face, faces: Face[], }) =
 
 
     // Debounce with 5 ms delay.
-    const d_deleteFace = debounce(deleteFace, 500);
-    const d_updateFace = debounce(updateFace, 500);
+    const d_deleteFace = useDebounce(deleteFace, 500);
+    const d_updateFace = useDebounce(updateFace, 500);
 
     return (
         <form onSubmit={handleSubmit((data) => {

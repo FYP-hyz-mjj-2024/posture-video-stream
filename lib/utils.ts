@@ -8,7 +8,7 @@ import { useCallback } from "react";
  * @param delay Delay amount in ms.
  * @returns The registered call-back function with the delay wrapped under a useCallback hook.
  */
-export function debounce<T extends (...args: any[]) => any>(fn: T, delay = 500) {
+export function useDebounce<T extends (...args: any[]) => any>(fn: T, delay = 500) {
     let timer: ReturnType<typeof setTimeout>;
     return useCallback(function (this: ThisParameterType<T>, ...args: Parameters<T>) {
         clearTimeout(timer);

@@ -12,7 +12,7 @@ import { guardPage } from '@/lib/auth';
 import { NavigationButton } from '@/components/buttons';
 import { IoMdArrowBack } from 'react-icons/io';
 import { ImageInput } from '@/components/Inputs';
-import { debounce } from '@/lib/utils';
+import { useDebounce } from '@/lib/utils';
 import { compareFace } from '@/lib/server';
 
 export default function CompareFace() {
@@ -25,7 +25,7 @@ export default function CompareFace() {
     const [faceCompareResults, setFaceCompareResults] = useState<FaceCompareResult[]>([]);
 
     // Debounce with 5 ms delay.
-    const d_compareFace = debounce(compareFace, 500);
+    const d_compareFace = useDebounce(compareFace, 500);
 
     /**
      * Protected page. Need user authorize.

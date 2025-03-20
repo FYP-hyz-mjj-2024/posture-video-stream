@@ -12,7 +12,7 @@ import { guardPage } from '@/lib/auth';
 import { NavigationButton } from '@/components/buttons';
 import { IoMdArrowBack } from 'react-icons/io';
 import { ImageInput } from '@/components/Inputs';
-import { debounce } from '@/lib/utils';
+import { useDebounce } from '@/lib/utils';
 import { uploadFace } from '@/lib/server';
 
 const inputFieldStyle = `flex flex-row p-2 rounded-lg border w-full bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600`;
@@ -25,7 +25,7 @@ export default function UploadFace() {
     const imageInputRef = useRef<HTMLInputElement>(null);
 
     // Debounce with 5 ms delay.
-    const d_uploadFace = debounce(uploadFace, 500);
+    const d_uploadFace = useDebounce(uploadFace, 500);
 
     /**
      * Protected page. Need user authorize.

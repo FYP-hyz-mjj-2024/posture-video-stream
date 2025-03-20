@@ -128,7 +128,7 @@ export default function Login() {
                     <div
                         className={`flex flex-row text-align-center items-center justify-center gap-2 mt-8 text-sm opacity-50 hover:cursor-pointer`}
                         onClick={() => { router.push("./register"); }}>
-                        <p>Don't have an account? Register!</p>
+                        <p>{`Don't have an account? Register!`}</p>
                     </div>
                 </form>
             </div>

@@ -1,11 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
-import Indicator from "@/components/Indicator";
+import { useRouter } from "next/router";
 import { IoGrid } from 'react-icons/io5';
-import { NavigationButton } from '@/components/buttons';
+
 
 import codes from "@/data/WSCode";
 import { WS_URL } from "@/utils/pathMap";
-import { useRouter } from "next/router";
+import { NavigationButton } from '@/components/buttons';
+import Indicator from "@/components/Indicator";
+
 
 
 import { Line } from 'react-chartjs-2';
@@ -17,7 +19,7 @@ import {
 
 import { getUser } from "@/lib/auth";
 import { compareFace } from '@/lib/server';
-import { debounce } from "@/lib/utils"
+import { useDebounce } from "@/lib/utils"
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -45,7 +47,7 @@ export default function Home() {
   const [userData, setUserData] = useState<User | null>(null);
 
   // Debounce face compare for 500 seconds.
-  const d_compareFace = debounce(compareFace, 500);
+  const d_compareFace = useDebounce(compareFace, 500);
 
   // Image frame ref of DOM
   const videoFrameRef = useRef<HTMLCanvasElement | null>(null);
@@ -185,7 +187,7 @@ export default function Home() {
     return () => {
       ws.close();
     };
-  }, [isPaused]);
+  }, [isPaused, haveVideoSource]);
 
   /**
    * Setup video latency chart.
@@ -209,7 +211,7 @@ export default function Home() {
         }
       ]
     })
-  }, [vidLatency]);
+  }, [vidLatency, chartData.datasets, chartData.labels]);
 
   return (
     <main className={`flex flex-col min-h-screen items-center justify-start gap-5 p-12`}>
@@ -273,8 +275,8 @@ export default function Home() {
             {
               announcedFaces?.length > 0 ?
                 (announcedFaces?.map((v, k) => (
-                  <div className={`w-[80%] max-lg:h-4/5 hover:cursor-pointer hover:opacity-50`}>
-                    <img key={k}
+                  <div key={k} className={`w-[80%] max-lg:h-4/5 hover:cursor-pointer hover:opacity-50`}>
+                    <img
                       src={`data:image/jpeg;base64,${v}`}
                       className={`w-full`}
                       onClick={() => {

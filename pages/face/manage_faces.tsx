@@ -10,7 +10,7 @@ import { IoMdArrowBack, IoMdTrash } from "react-icons/io";
 // Local
 import { guardPage } from '@/lib/auth';
 import { NavigationButton, Button } from '@/components/buttons';
-import { debounce } from '@/lib/utils';
+import { useDebounce } from '@/lib/utils';
 import { FaceItem } from '@/components/FaceItem';
 
 const buttonStyle = `border rounded-md text-center hover:cursor-pointer select-none`;
@@ -55,7 +55,7 @@ export default function ManageFaces() {
         if (userData) {
             setUserData(JSON.parse(userData));
         }
-    }, []);
+    }, [router]);
 
 
     /**
