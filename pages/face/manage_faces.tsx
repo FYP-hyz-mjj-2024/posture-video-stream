@@ -36,7 +36,7 @@ export default function ManageFaces() {
     async function getFaces(facesGet: FacesGet): Promise<FacesGetResult | null> {
         try {
             const response = await axios.post(
-                `${process.env.NEXT_PUBLIC_DB_DOMAIN}/face/get_faces`,
+                `${process.env.NEXT_PUBLIC_DB_DOMAIN}/face/get_faces/`,
                 facesGet,
             );
             return response.data;

@@ -9,7 +9,7 @@ import { NextRouter } from "next/router";
 export async function getUser(userAuth: UserAuth) {
     try {
         const response = await axios.post(
-            `${process.env.NEXT_PUBLIC_DB_DOMAIN}/user/get_user`,
+            `${process.env.NEXT_PUBLIC_DB_DOMAIN}/user/get_user/`,
             userAuth,
         );
         return response.data;

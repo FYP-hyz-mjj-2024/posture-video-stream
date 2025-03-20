@@ -45,8 +45,9 @@ export default function Login() {
         setPageError(null);
 
         axios.post(
-            `${process.env.NEXT_PUBLIC_DB_DOMAIN}/user/login`,
-            userLogin
+            `${process.env.NEXT_PUBLIC_DB_DOMAIN}/user/login/`,
+            userLogin,
+            { withCredentials: true }
         ).then((response) => {
             let user_id = response.data.user_id;
             let token = response.data.access_token;

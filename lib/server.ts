@@ -40,7 +40,7 @@ export async function compareFace(
 
     // Upload.
     axios.post(
-        `${process.env.NEXT_PUBLIC_DB_DOMAIN}/face/compare_face`,
+        `${process.env.NEXT_PUBLIC_DB_DOMAIN}/face/compare_face/`,
         faceCompare
     ).then((response) => {
         if (!response) {
@@ -93,7 +93,7 @@ export async function uploadFace(
 
     // Upload.
     axios.post(
-        `${process.env.NEXT_PUBLIC_DB_DOMAIN}/face/upload_face`,
+        `${process.env.NEXT_PUBLIC_DB_DOMAIN}/face/upload_face/`,
         faceUpload
     ).then((response) => {
         if (!response) {
@@ -130,7 +130,7 @@ export async function updateFace(
     };
 
     axios.post(
-        `${process.env.NEXT_PUBLIC_DB_DOMAIN}/face/update_face`,
+        `${process.env.NEXT_PUBLIC_DB_DOMAIN}/face/update_face/`,
         faceUpdate
     ).then((response) => {
         callbacks.onSuccessCallback(response);
@@ -168,7 +168,7 @@ export async function deleteFace(
     };
 
     axios.post(
-        `${process.env.NEXT_PUBLIC_DB_DOMAIN}/face/delete_face`,
+        `${process.env.NEXT_PUBLIC_DB_DOMAIN}/face/delete_face/`,
         faceDelete
     ).then((response) => {
         callbacks.onSuccessCallback(response);

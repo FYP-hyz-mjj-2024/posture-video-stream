@@ -20,7 +20,7 @@ export default function Register() {
         setPageError(null);
 
         axios.post(
-            `${process.env.NEXT_PUBLIC_DB_DOMAIN}/user/register`,
+            `${process.env.NEXT_PUBLIC_DB_DOMAIN}/user/register/`,
             {
                 email: email,
                 name: name,
