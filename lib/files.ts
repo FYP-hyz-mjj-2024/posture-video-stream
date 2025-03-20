@@ -1,3 +1,5 @@
+import imageCompression, { Options } from 'browser-image-compression';
+
 export const MAX_FILE_SIZE = 200 * 1024 * 1024;    // 200 MB
 
 /**
@@ -23,6 +25,57 @@ export function _fileToBase64(file: File, keepHeader = false): Promise<string> {
         reader.onerror = error => reject(error);
     });
 }
+
+
+/**
+ * Construct a Blob object using data URL. Note that
+ * a data URL is basically a base64 string with a 
+ * header:
+ * 
+ * data:image/png;base64,ivB......
+ * @param dataURL Data URL to construct the Blob object.
+ * @returns 
+ */
+export function _dataURLtoFile(dataURL: string): File {
+    // Match mime type
+    const matches = dataURL.match(/^data:(image\/(png|jpeg|jpg));base64,(.*)$/);
+    if (!matches) {
+        throw new Error("Invalid Base64 format");
+    }
+
+    const mimeType = matches[1];
+    const fileType = mimeType.split("/")[1];
+    const byteString = atob(matches[3]);
+    const arrayBuffer = new ArrayBuffer(byteString.length);
+    const uint8Array = new Uint8Array(arrayBuffer);
+
+    for (let i = 0; i < byteString.length; i++) {
+        uint8Array[i] = byteString.charCodeAt(i);
+    }
+
+    const fileName = `face_upload_${Date.now().toString()}.${fileType}`;
+
+    return new File([uint8Array], fileName, { type: mimeType });
+};
+
+
+/**
+ * Compress a dataURL of an image to a base64 string (headerless) with
+ * the specified options.
+ * @param dataURL 
+ * @returns 
+ */
+export async function _compressImage(dataURL: string, options: Options): Promise<string> {
+    // Convert data url to file, compress file.
+    const file = _dataURLtoFile(dataURL);
+    const compressedFile = await imageCompression(file, options);
+
+    // Extract base64 string part of the file.
+    const compressedBase64 = await _fileToBase64(compressedFile);
+
+    return compressedBase64
+}
+
 
 /**
  * Check for the magic number to determine file type.
