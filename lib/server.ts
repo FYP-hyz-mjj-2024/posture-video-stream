@@ -1,5 +1,6 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
-import { callback } from "chart.js/helpers";
+import { _compressImage, _dataURLtoFile, _fileToBase64 } from "./files";
+
 
 /**
  * Upload a face, and get the comparasion result.
@@ -30,7 +31,20 @@ export async function compareFace(
         alert("No file is selected.");
         return;
     }
-    const blob = faceCompareSubmit.blob.split(",")[1];
+
+    let blob: string;
+    try {
+        const options = {
+            maxSizeMB: 0.07,
+            useWebWorker: true,
+        };
+
+        console.log("Compressing....")
+        blob = await _compressImage(faceCompareSubmit.blob, options);
+    } catch (e) {
+        callbacks.onFailCallback(e);
+        return;
+    }
 
     const faceCompare: FaceCompare = {
         user_id: user_id,
@@ -82,7 +96,20 @@ export async function uploadFace(
         alert("No file is selected.");
         return;
     }
-    const blob = faceUploadSubmit.blob.split(",")[1];
+
+    let blob: string;
+    try {
+        const options = {
+            maxSizeMB: 0.07,
+            useWebWorker: true,
+        };
+
+        console.log("Compressing....")
+        blob = await _compressImage(faceUploadSubmit.blob, options);
+    } catch (e) {
+        callbacks.onFailCallback(e);
+        return;
+    }
 
     const faceUpload: FaceUpload = {
         user_id: user_id,
