@@ -28,8 +28,9 @@ export function _fileToBase64(file: File, keepHeader = false): Promise<string> {
 
 
 /**
- * Construct a Blob object using data URL. Note that a 
- * data URL is basically a base64 string with a header:
+ * Construct a Blob object using data URL. Note that
+ * a data URL is basically a base64 string with a 
+ * header:
  * 
  * data:image/png;base64,ivB......
  * @param dataURL Data URL to construct the Blob object.
@@ -42,11 +43,8 @@ export function _dataURLtoFile(dataURL: string): File {
         throw new Error("Invalid Base64 format");
     }
 
-    // Mimetype and File type
     const mimeType = matches[1];
     const fileType = mimeType.split("/")[1];
-
-    // Decode base64 to binary.
     const byteString = atob(matches[3]);
     const arrayBuffer = new ArrayBuffer(byteString.length);
     const uint8Array = new Uint8Array(arrayBuffer);

@@ -64,7 +64,7 @@ interface FacesGetResult {
 
 /** Upload Face */
 type FaceUploadSubmit = {
-    blob: string,
+    blob: string,       // DataURL
     description: string
 };
 

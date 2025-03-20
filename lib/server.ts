@@ -1,4 +1,5 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
+import imageCompression from 'browser-image-compression';
 import { _compressImage, _dataURLtoFile, _fileToBase64 } from "./files";
 
 
