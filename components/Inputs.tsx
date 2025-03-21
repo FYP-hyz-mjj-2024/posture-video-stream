@@ -1,15 +1,16 @@
 "use client";
-
+// Basic
+import { useRef, useEffect, useState } from "react";
+import { NextRouter } from "next/router";
 import Image from "next/image";
 import { UseFormSetValue, UseFormWatch } from "react-hook-form";
 import { IconType } from "react-icons";
+import { FaMagnifyingGlass, FaCircleXmark } from 'react-icons/fa6';
+
+// Local
 import { handleFileInputClick, handleFileInputDrop } from "@/lib/files";
-import { FaMagnifyingGlass } from 'react-icons/fa6';
-import { useState } from "react";
 import { useDebounce } from "@/lib/utils";
 import { findFace } from "@/lib/server";
-import { NextRouter } from "next/router";
-
 import { checkFileTypeFromBase64 } from "@/lib/files";
 
 /**
@@ -80,31 +81,59 @@ export const ImageInput = (props: {
     );
 }
 
-
+/**
+ * The real-time search bar that searches faces.
+ * @param props 
+ * @returns 
+ */
 export const FaceSearchBar = (props: { router: NextRouter }) => {
     const { router } = props;
-
     const [isActive, setIsActive] = useState<boolean>(false);
-
     const [prompt, setPrompt] = useState<"Loading" | "No result." | null>("Loading");
     const [faceDetail, setFaceDetail] = useState<Face | null>(null);
 
     const d_findFace = useDebounce(findFace, 500);
 
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+
+    // Use ESC key to cancel search.
+    useEffect(() => {
+
+        const handleEscKey = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                setIsActive(false);
+                if (textareaRef.current) {
+                    textareaRef.current.value = "";
+                }
+            }
+        };
+
+        window.addEventListener("keydown", handleEscKey);
+
+        return () => {
+            window.removeEventListener('keydown', handleEscKey);
+        };
+    }, []);
 
     return (
         <div className={`flex flex-col relative`}>
             <textarea
+                ref={textareaRef}
                 className={`
-                    border border-ui-line dark:border-ui-line-dark bg-white dark:bg-gray-900
-                    rounded-md pt-1.5 pl-9 h-10 resize-none placeholder:align-middle
+                    border border-ui-line dark:border-ui-line-dark 
+                    bg-white dark:bg-gray-900
+                    rounded-md pt-1.5 pl-9 h-10 resize-none 
+                    placeholder:align-middle
                 `}
                 rows={1}
                 placeholder={`Search Face`}
                 onFocus={() => { setIsActive(true); }}
                 onBlur={() => {
                     setIsActive(false);
+                    if (textareaRef.current) {
+                        textareaRef.current.value = "";
+                    }
                 }}
                 onChange={(event: React.ChangeEvent<HTMLTextAreaElement>) => {
                     setPrompt("Loading");
@@ -129,9 +158,16 @@ export const FaceSearchBar = (props: { router: NextRouter }) => {
                                 setPrompt("No result.");
                             }
                         });
+                }}
+                onKeyDown={(event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+                    if (event.key !== "Enter") return;
+                    event.preventDefault();
                 }} />
 
             <FaMagnifyingGlass className={`absolute top-3 left-3 text-gray-400`} />
+            {isActive && (
+                <FaCircleXmark className={`absolute top-3 right-3 text-gray-400`} />
+            )}
 
             {isActive && (
                 <div className={`
