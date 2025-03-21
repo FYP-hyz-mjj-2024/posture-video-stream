@@ -9,7 +9,7 @@ import { IoMdArrowBack, IoMdCloudUpload, IoIosGitCompare } from "react-icons/io"
 import { guardPage } from '@/lib/auth';
 import { NavigationButton, Button } from '@/components/buttons';
 import { FaceItem } from '@/components/FaceItem';
-import { SearchBar } from '@/components/Inputs';
+import { FaceSearchBar } from '@/components/Inputs';
 
 
 const buttonStyle = `border rounded-md text-center hover:cursor-pointer select-none`;
@@ -125,7 +125,7 @@ export default function ManageFaces() {
                         excessStyles={`w-25 h-full`} />
 
                     {/** Search Bar */}
-                    {/* <SearchBar /> */}
+                    <FaceSearchBar router={router} />
                 </div>
 
                 {/** Title and face list */}

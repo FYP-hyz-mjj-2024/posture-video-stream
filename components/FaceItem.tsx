@@ -24,8 +24,6 @@ export const FaceItem = (props: { arrId: number, face: Face, faces: Face[], }) =
         }
     });
 
-
-
     // Debounce with 5 ms delay.
     const d_deleteFace = useDebounce(deleteFace, 500);
     const d_updateFace = useDebounce(updateFace, 500);
