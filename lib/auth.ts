@@ -29,7 +29,6 @@ export async function getUser(userAuth: UserAuth) {
          * 1. Bad token: Expired or invalid;
          * 2. Server stopped.
          */
-        console.log(e);
         return null;
     }
 }

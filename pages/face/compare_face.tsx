@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { useRouter } from "next/router";
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { IoIosPersonAdd } from "react-icons/io";
 
 // Local
@@ -13,13 +13,13 @@ import { NavigationButton } from '@/components/buttons';
 import { IoMdArrowBack } from 'react-icons/io';
 import { ImageInput } from '@/components/Inputs';
 import { useDebounce } from '@/lib/utils';
-import { compareFace } from '@/lib/server';
+import { _getErrorMessage, compareFace } from '@/lib/server';
 
 export default function CompareFace() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
-    const { register, setValue, handleSubmit, watch, formState: { errors } } = useForm<FaceCompareSubmit>();
+    const { setValue, handleSubmit, watch } = useForm<FaceCompareSubmit>();
     const imageInputRef = useRef<HTMLInputElement>(null);
 
     const [faceCompareResults, setFaceCompareResults] = useState<FaceCompareResult[]>([]);
@@ -32,7 +32,7 @@ export default function CompareFace() {
      */
     useEffect(() => {
         guardPage(router);
-    });
+    }, []);
 
 
     return (
@@ -53,7 +53,8 @@ export default function CompareFace() {
                     },
                     onFailCallback: (e) => {
                         setIsLoading(false);
-                        window.alert(e.response?.data.detail);
+                        const message = _getErrorMessage(e);
+                        window.alert(message);
                     },
                 });
             })}>

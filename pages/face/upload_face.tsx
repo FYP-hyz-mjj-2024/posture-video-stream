@@ -13,7 +13,7 @@ import { NavigationButton } from '@/components/buttons';
 import { IoMdArrowBack } from 'react-icons/io';
 import { ImageInput } from '@/components/Inputs';
 import { useDebounce } from '@/lib/utils';
-import { uploadFace } from '@/lib/server';
+import { _getErrorMessage, uploadFace } from '@/lib/server';
 
 const inputFieldStyle = `flex flex-row p-2 rounded-lg border w-full bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600`;
 const errorStyle = `flex flex-row h-2 text-red-400 m-0 pl-1 text-sm`
@@ -50,7 +50,8 @@ export default function UploadFace() {
                     },
                     onFailCallback: (e) => {
                         setIsLoading(false);
-                        window.alert(e.response?.data.detail);
+                        const message = _getErrorMessage(e);
+                        window.alert(message);
                     },
                 });
             })}>

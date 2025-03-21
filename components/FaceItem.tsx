@@ -10,7 +10,7 @@ import { AiFillEdit } from "react-icons/ai";
 import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
 
-import { deleteFace, updateFace } from "@/lib/server";
+import { _getErrorMessage, deleteFace, updateFace } from "@/lib/server";
 import { checkFileTypeFromBase64 } from "@/lib/files";
 
 export const FaceItem = (props: { arrId: number, face: Face, faces: Face[], }) => {
@@ -114,7 +114,10 @@ export const FaceItem = (props: { arrId: number, face: Face, faces: Face[], }) =
                                 {
                                     onAuthFailCallback: () => { router.push("/"); },
                                     onSuccessCallback: (response) => { router.reload(); },
-                                    onFailCallback: (e) => { window.alert(e.response?.data.detail); }
+                                    onFailCallback: (e) => {
+                                        const message = _getErrorMessage(e);
+                                        window.alert(message);
+                                    }
                                 }
                             );
                         }}>

@@ -40,7 +40,7 @@ export default function ManageFaces() {
             );
             return response.data;
         } catch (e) {
-            console.log(e);
+
             return null;
         }
     }

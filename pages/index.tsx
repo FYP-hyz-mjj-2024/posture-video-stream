@@ -16,7 +16,7 @@ import Indicator from "@/components/Indicator";
 import codes from "@/data/WSCode";
 import { WS_URL } from "@/utils/pathMap";
 import { getUser, logOut } from "@/lib/auth";
-import { compareFace } from '@/lib/server';
+import { _getErrorMessage, compareFace } from '@/lib/server';
 import { useDebounce } from "@/lib/utils"
 
 ChartJS.register(
@@ -37,7 +37,7 @@ const _getBase64FromWSMsg = (wsOnMessageEvent: MessageEvent<string>) => {
     let parsedJson: WSMessages = JSON.parse(byte_string);
     return parsedJson;
   } catch (e) {
-    console.log(`Unable to resolve message. Error:${e}`);
+    console.error(`Unable to resolve message. Error:${e}`);
     return null;
   }
 };
@@ -287,7 +287,7 @@ export default function Home() {
           <div className="flex border-y border-r border-gray-400 pt-3 gap-3 flex-col items-center w-36">
             {
               announcedFaces?.length > 0 ?
-                (announcedFaces?.map((v, k) => (
+                (announcedFaces.map((v, k) => (
                   <div key={k} className={`w-[80%] max-lg:h-4/5 hover:cursor-pointer hover:opacity-50`}>
                     <img
                       src={`data:image/jpeg;base64,${v}`}
@@ -308,11 +308,10 @@ export default function Home() {
                               const _faceCompareResults: FaceCompareResults = response.data;
                               const _selectedName = `${_faceCompareResults.desc_scores[0].description} - ${_faceCompareResults.desc_scores[0].score}`;
                               setSelectedName(_selectedName);
-                              console.log(_faceCompareResults);
                             },
                             onFailCallback: (e) => {
-                              // window.alert(e.response?.data.detail);
-                              console.log(e);
+                              const message = _getErrorMessage(e);
+                              window.alert(message);
                             },
                           });
                       }} />

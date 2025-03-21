@@ -152,7 +152,6 @@ export const FaceSearchBar = (props: { router: NextRouter }) => {
                             onSuccessCallback: (response) => {
                                 setPrompt(null);
                                 setFaceDetail(response.data.face);
-                                console.log(response);
                             },
                             onFailCallback: (e) => {
                                 setPrompt("No result.");

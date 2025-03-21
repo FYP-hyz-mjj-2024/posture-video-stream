@@ -40,8 +40,6 @@ export default function Login() {
             ...(email_or_name.indexOf('@') != -1) ? { email: email_or_name } : { name: email_or_name }
         }
 
-        console.log(userLoginSubmit);
-
         setPageError(null);
 
         axios.post(
@@ -53,7 +51,6 @@ export default function Login() {
             let token = response.data.access_token;
             localStorage.setItem("user_id", user_id);
             localStorage.setItem("token", token);
-            console.log(response);
             router.push("/")
         }).catch((e) => {
             setPageError(e.response?.data.detail);

@@ -29,7 +29,9 @@ export async function compareFace(
 
     // Remove the header of the base64 string.
     if (!faceCompareSubmit.blob) {
-        alert("No file is selected.");
+        callbacks.onFailCallback({
+            localMessage: "No file selected. Please at least select one file.",
+        });
         return;
     }
 
@@ -40,10 +42,11 @@ export async function compareFace(
             useWebWorker: true,
         };
 
-        console.log("Compressing....")
         blob = await _compressImage(faceCompareSubmit.blob, options);
     } catch (e) {
-        callbacks.onFailCallback(e);
+        callbacks.onFailCallback({
+            localMessage: "An error occurred during compression for upload_face."
+        });
         return;
     }
 
@@ -105,10 +108,11 @@ export async function uploadFace(
             useWebWorker: true,
         };
 
-        console.log("Compressing....")
         blob = await _compressImage(faceUploadSubmit.blob, options);
     } catch (e) {
-        callbacks.onFailCallback(e);
+        callbacks.onFailCallback({
+            localMessage: "An error occurred during compression for upload_face."
+        });
         return;
     }
 
@@ -255,4 +259,28 @@ export async function findFace(
     }).catch((e) => {
         callbacks.onFailCallback(e);
     });
+}
+
+
+/**
+ * Get message from multiple possible error forms.
+ * @param e 
+ * @returns 
+ */
+export function _getErrorMessage(e: any) {
+    let message;
+    if (e.localMessage) {
+        message = e.localMessage;
+    }
+    else if (e.message) {
+        message = e.message;
+    }
+    else if (e.response?.data.detail) {
+        message = e.response?.data.detail;
+    }
+    else {
+        message = "Unknown error occurred. Please try again."
+    }
+
+    return message;
 }
