@@ -1,4 +1,19 @@
 /**
+ * @description Abstract types.
+ */
+
+type SingleKeyObj<K extends string, V> = {
+    [key in K]: V;
+}
+
+type RequestCallbacks = {
+    onAuthFailCallback: Function,
+    onSuccessCallback: Function,
+    onFailCallback: Function
+}
+
+
+/**
  * @description WebSocket related interfaces and types.
  */
 
@@ -252,3 +267,16 @@ type FaceDelete = UserAuth & {
     face_id: string,
 };
 
+/**
+ * Face find by description request body.
+ * @param description Description.
+ */
+type FaceFindByDescSubmit = {
+    description: string,
+}
+
+type FaceFindByDesc = UserAuth & FaceFindByDescSubmit;
+
+type FaceFindResult = {
+    face: Face,
+}

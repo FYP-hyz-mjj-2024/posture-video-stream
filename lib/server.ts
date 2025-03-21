@@ -69,7 +69,7 @@ export async function compareFace(
 
 
 /**
- * Upload fa face to store in the database.
+ * Upload face to store in the database.
  * @param faceUploadSubmit Face upload submit data: user_id, token, blob, description.
  * @param callbacks.onAuthFailCallback Callback when the user is not logged in.
  * @param callbacks.onSuccessCallback Callback when the upload is successful.
@@ -133,6 +133,14 @@ export async function uploadFace(
     });
 }
 
+/**
+ * Update the information of a face.
+ * @param faceUpdateSubmit Face update submit data: face_id, description.
+ * @param callbacks.onAuthFailCallback Callback when the user is not logged in.
+ * @param callbacks.onSuccessCallback Callback when the upload is successful.
+ * @param callbacks.onFailCallback Callback when the upload is failed.
+ * @returns 
+ */
 export async function updateFace(
     faceUpdateSubmit: FaceUpdateSubmit,
     callbacks: {
@@ -170,6 +178,9 @@ export async function updateFace(
 /**
  * Delete a face.
  * @param face_id Face id. 
+ * @param callbacks.onAuthFailCallback Callback when the user is not logged in.
+ * @param callbacks.onSuccessCallback Callback when the upload is successful.
+ * @param callbacks.onFailCallback Callback when the upload is failed.
  * @returns 
  */
 export async function deleteFace(
@@ -198,6 +209,47 @@ export async function deleteFace(
     axios.post(
         `${process.env.NEXT_PUBLIC_DB_DOMAIN}/face/delete_face/`,
         faceDelete
+    ).then((response) => {
+        callbacks.onSuccessCallback(response);
+    }).catch((e) => {
+        callbacks.onFailCallback(e);
+    });
+}
+
+/**
+ * Find a face.
+ * @param findFaceByDescSubmit Face find by description submit data: description.
+ * @param callbacks.onAuthFailCallback Callback when the user is not logged in.
+ * @param callbacks.onSuccessCallback Callback when the upload is successful.
+ * @param callbacks.onFailCallback Callback when the upload is failed.
+ * @returns  
+ * */
+export async function findFace(
+    faceFindByDescSubmit: FaceFindByDescSubmit,
+    callbacks: {
+        onAuthFailCallback: () => void,
+        onSuccessCallback: (response: AxiosResponse<FaceFindResult>) => void,
+        onFailCallback: (e: any) => void
+    }
+) {
+    const user_id = localStorage.getItem("user_id");
+    const token = localStorage.getItem("token");
+
+    if (!user_id || !token) {
+        alert("Your login info is expired. Please re-login.");
+        callbacks.onAuthFailCallback();
+        return;
+    }
+
+    const faceFindDesc = {
+        user_id: user_id,
+        token: token,
+        description: faceFindByDescSubmit.description,
+    }
+
+    axios.post(
+        `${process.env.NEXT_PUBLIC_DB_DOMAIN}/face/find_face/`,
+        faceFindDesc
     ).then((response) => {
         callbacks.onSuccessCallback(response);
     }).catch((e) => {
