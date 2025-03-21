@@ -96,7 +96,10 @@ export const FaceSearchBar = (props: { router: NextRouter }) => {
     return (
         <div className={`flex flex-col relative`}>
             <textarea
-                className={`border border-ui-line rounded-md pt-1.5 pl-9 h-10 resize-none placeholder:align-middle`}
+                className={`
+                    border border-ui-line dark:border-ui-line-dark bg-white dark:bg-gray-900
+                    rounded-md pt-1.5 pl-9 h-10 resize-none placeholder:align-middle
+                `}
                 rows={1}
                 placeholder={`Search Face`}
                 onFocus={() => { setIsActive(true); }}
