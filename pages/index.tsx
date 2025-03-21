@@ -300,8 +300,9 @@ export default function Home() {
                         d_compareFace(
                           { blob: `data:image/jpeg;base64,${v}` } as FaceCompareSubmit,
                           {
-                            onAuthFailCallback: () => {
-                              alert("Your login info is expired. Please re-login.");
+                            onAuthFailCallback: (e) => {
+                              const message = _getErrorMessage(e);
+                              window.alert(message);
                               router.push("/");
                             },
                             onSuccessCallback: (response) => {

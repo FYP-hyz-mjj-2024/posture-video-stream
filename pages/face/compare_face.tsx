@@ -41,9 +41,10 @@ export default function CompareFace() {
                 setIsLoading(true);
                 setFaceCompareResults([]);
                 d_compareFace(data, {
-                    onAuthFailCallback: () => {
+                    onAuthFailCallback: (e) => {
                         setIsLoading(false);
-                        alert("Your login info is expired. Please re-login.");
+                        const message = _getErrorMessage(e);
+                        window.alert(message);
                         router.push("/");
                     },
                     onSuccessCallback: (response) => {

@@ -39,9 +39,10 @@ export default function UploadFace() {
             <form onSubmit={handleSubmit((data) => {
                 setIsLoading(true);
                 d_uploadFace(data, {
-                    onAuthFailCallback: () => {
+                    onAuthFailCallback: (e) => {
                         setIsLoading(false);
-                        alert("Your login info is expired. Please re-login.");
+                        const message = _getErrorMessage(e);
+                        window.alert(message);
                         router.push("/");
                     },
                     onSuccessCallback: (response) => {

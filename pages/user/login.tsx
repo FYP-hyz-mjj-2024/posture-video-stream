@@ -51,7 +51,7 @@ export default function Login() {
             let token = response.data.access_token;
             localStorage.setItem("user_id", user_id);
             localStorage.setItem("token", token);
-            router.push("/")
+            router.push("/");
         }).catch((e) => {
             setPageError(e.response?.data.detail);
         })

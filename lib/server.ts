@@ -6,15 +6,13 @@ import { _compressImage, _dataURLtoFile, _fileToBase64 } from "./files";
 /**
  * Upload a face, and get the comparasion result.
  * @param faceCompareSubmit Face upload submit data: user_id, token, blob.
- * @param callbacks.onAuthFailCallback Callback when the user is not logged in.
- * @param callbacks.onSuccessCallback Callback when the upload is successful.
- * @param callbacks.onFailCallback Callback when the upload is failed.
+ * @param callbacks
  * @returns 
  */
 export async function compareFace(
     faceCompareSubmit: FaceCompareSubmit,
     callbacks: {
-        onAuthFailCallback: () => void,
+        onAuthFailCallback: (e: any) => void,
         onSuccessCallback: (response: AxiosResponse<FaceCompareResults>) => void,
         onFailCallback: (e: any) => void
     }
@@ -23,7 +21,9 @@ export async function compareFace(
     const token = localStorage.getItem("token");
 
     if (!user_id || !token) {
-        callbacks.onAuthFailCallback();
+        callbacks.onAuthFailCallback({
+            localMessage: "Your login info is expired. Please re-login."
+        });
         return;
     }
 
@@ -81,7 +81,7 @@ export async function compareFace(
 export async function uploadFace(
     faceUploadSubmit: FaceUploadSubmit,
     callbacks: {
-        onAuthFailCallback: () => void,
+        onAuthFailCallback: (e: any) => void,
         onSuccessCallback: (response: AxiosResponse<FaceCompareResults>) => void,
         onFailCallback: (e: any) => void
     }
@@ -90,14 +90,17 @@ export async function uploadFace(
     const token = localStorage.getItem("token");
 
     if (!user_id || !token) {
-        alert("Your login info is expired. Please re-login.");
-        callbacks.onAuthFailCallback();
+        callbacks.onAuthFailCallback({
+            localMessage: "Your login info is expired. Please re-login."
+        });
         return;
     }
 
     // Remove the header of the base64 string.
     if (!faceUploadSubmit.blob) {
-        alert("No file is selected.");
+        callbacks.onFailCallback({
+            localMessage: "No file selected. Please at least select one file.",
+        });
         return;
     }
 
@@ -140,15 +143,13 @@ export async function uploadFace(
 /**
  * Update the information of a face.
  * @param faceUpdateSubmit Face update submit data: face_id, description.
- * @param callbacks.onAuthFailCallback Callback when the user is not logged in.
- * @param callbacks.onSuccessCallback Callback when the upload is successful.
- * @param callbacks.onFailCallback Callback when the upload is failed.
+ * @param callbacks
  * @returns 
  */
 export async function updateFace(
     faceUpdateSubmit: FaceUpdateSubmit,
     callbacks: {
-        onAuthFailCallback: () => void,
+        onAuthFailCallback: (e: any) => void,
         onSuccessCallback: (response: AxiosResponse<FaceCompareResults>) => void,
         onFailCallback: (e: any) => void
     }
@@ -157,8 +158,9 @@ export async function updateFace(
     const token = localStorage.getItem("token");
 
     if (!user_id || !token) {
-        alert("Your login info is expired. Please re-login.");
-        callbacks.onAuthFailCallback();
+        callbacks.onAuthFailCallback({
+            localMessage: "Your login info is expired. Please re-login."
+        });
         return;
     }
 
@@ -182,15 +184,13 @@ export async function updateFace(
 /**
  * Delete a face.
  * @param face_id Face id. 
- * @param callbacks.onAuthFailCallback Callback when the user is not logged in.
- * @param callbacks.onSuccessCallback Callback when the upload is successful.
- * @param callbacks.onFailCallback Callback when the upload is failed.
+ * @param callbacks
  * @returns 
  */
 export async function deleteFace(
     face_id: string,
     callbacks: {
-        onAuthFailCallback: () => void,
+        onAuthFailCallback: (e: any) => void,
         onSuccessCallback: (response: AxiosResponse<FaceCompareResults>) => void,
         onFailCallback: (e: any) => void
     }
@@ -199,8 +199,9 @@ export async function deleteFace(
     const token = localStorage.getItem("token");
 
     if (!user_id || !token) {
-        alert("Your login info is expired. Please re-login.");
-        callbacks.onAuthFailCallback();
+        callbacks.onAuthFailCallback({
+            localMessage: "Your login info is expired. Please re-login."
+        });
         return;
     }
 
@@ -223,15 +224,13 @@ export async function deleteFace(
 /**
  * Find a face.
  * @param findFaceByDescSubmit Face find by description submit data: description.
- * @param callbacks.onAuthFailCallback Callback when the user is not logged in.
- * @param callbacks.onSuccessCallback Callback when the upload is successful.
- * @param callbacks.onFailCallback Callback when the upload is failed.
+ * @param callbacks
  * @returns  
  * */
 export async function findFace(
     faceFindByDescSubmit: FaceFindByDescSubmit,
     callbacks: {
-        onAuthFailCallback: () => void,
+        onAuthFailCallback: (e: any) => void,
         onSuccessCallback: (response: AxiosResponse<FaceFindResult>) => void,
         onFailCallback: (e: any) => void
     }
@@ -240,8 +239,9 @@ export async function findFace(
     const token = localStorage.getItem("token");
 
     if (!user_id || !token) {
-        alert("Your login info is expired. Please re-login.");
-        callbacks.onAuthFailCallback();
+        callbacks.onAuthFailCallback({
+            localMessage: "Your login info is expired. Please re-login."
+        });
         return;
     }
 
@@ -271,9 +271,6 @@ export function _getErrorMessage(e: any) {
     let message;
     if (e.localMessage) {
         message = e.localMessage;
-    }
-    else if (e.message) {
-        message = e.message;
     }
     else if (e.response?.data.detail) {
         message = e.response?.data.detail;

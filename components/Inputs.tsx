@@ -10,7 +10,7 @@ import { FaMagnifyingGlass, FaCircleXmark } from 'react-icons/fa6';
 // Local
 import { handleFileInputClick, handleFileInputDrop } from "@/lib/files";
 import { useDebounce } from "@/lib/utils";
-import { findFace } from "@/lib/server";
+import { _getErrorMessage, findFace } from "@/lib/server";
 import { checkFileTypeFromBase64 } from "@/lib/files";
 
 /**
@@ -145,8 +145,9 @@ export const FaceSearchBar = (props: { router: NextRouter }) => {
                             description: event.target.value,
                         } as FaceFindByDescSubmit,
                         {
-                            onAuthFailCallback: () => {
-                                alert("Your login info is expired. Please re-login.");
+                            onAuthFailCallback: (e) => {
+                                const message = _getErrorMessage(e);
+                                window.alert(message);
                                 router.push("/");
                             },
                             onSuccessCallback: (response) => {

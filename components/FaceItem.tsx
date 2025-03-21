@@ -44,10 +44,15 @@ export const FaceItem = (props: { arrId: number, face: Face, faces: Face[], }) =
         <form onSubmit={handleSubmit((data) => {
             setIsEditing(false);
             d_updateFace(data, {
-                onAuthFailCallback: () => { router.push("/") },
+                onAuthFailCallback: (e) => {
+                    const message = _getErrorMessage(e);
+                    window.alert(message);
+                    router.push("/")
+                },
                 onSuccessCallback: (response) => { router.reload(); },
                 onFailCallback: (e) => {
-                    window.alert(e.response?.data.detail);
+                    const message = _getErrorMessage(e);
+                    window.alert(message);
                 }
             });
         })}>
@@ -112,7 +117,11 @@ export const FaceItem = (props: { arrId: number, face: Face, faces: Face[], }) =
                             }
                             d_deleteFace(face.id,
                                 {
-                                    onAuthFailCallback: () => { router.push("/"); },
+                                    onAuthFailCallback: (e) => {
+                                        const message = _getErrorMessage(e);
+                                        window.alert(message);
+                                        router.push("/")
+                                    },
                                     onSuccessCallback: (response) => { router.reload(); },
                                     onFailCallback: (e) => {
                                         const message = _getErrorMessage(e);
