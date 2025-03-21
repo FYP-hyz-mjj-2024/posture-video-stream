@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import axios from "axios";
 import { useDebounce } from "@/lib/utils";
@@ -17,7 +17,7 @@ export const FaceItem = (props: { arrId: number, face: Face, faces: Face[], }) =
     const router = useRouter();
     const [isEditing, setIsEditing] = useState<boolean>(false);
     const { arrId, face, faces } = props;
-    const { register, handleSubmit, watch, formState: { errors } } = useForm<FaceUpdate>({
+    const { register, handleSubmit, reset, watch, formState: { errors } } = useForm<FaceUpdate>({
         defaultValues: {
             face_id: face.id,
             description: face.description,
@@ -27,6 +27,18 @@ export const FaceItem = (props: { arrId: number, face: Face, faces: Face[], }) =
     // Debounce with 5 ms delay.
     const d_deleteFace = useDebounce(deleteFace, 500);
     const d_updateFace = useDebounce(updateFace, 500);
+
+    /**
+     * Very important!!!!!
+     * Here, we need to reset the form when the page changes.
+     * Otherwise we can only edit the faces in the first page.
+     */
+    useEffect(() => {
+        reset({
+            face_id: face.id,
+            description: face.description,
+        });
+    }, [face, reset]);
 
     return (
         <form onSubmit={handleSubmit((data) => {
@@ -50,7 +62,7 @@ export const FaceItem = (props: { arrId: number, face: Face, faces: Face[], }) =
                         <div>
                             <input type="hidden" {...register("face_id")} />
                             <textarea
-                                className={`h-[1.2em] resize-none`}
+                                className={`h-[1.2em] resize-none bg-white dark:bg-ui-area-dark`}
                                 {...register("description")}>
                             </textarea>
                         </div>
