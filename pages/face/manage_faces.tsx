@@ -2,15 +2,12 @@
 // Package
 import React, { useEffect, useState } from 'react';
 import { useRouter } from "next/router";
-import Image from "next/image";
 import axios from 'axios';
-import moment from "moment";
-import { IoMdArrowBack, IoMdTrash } from "react-icons/io";
+import { IoMdArrowBack, IoMdCloudUpload, IoIosGitCompare } from "react-icons/io";
 
 // Local
 import { guardPage } from '@/lib/auth';
 import { NavigationButton, Button } from '@/components/buttons';
-import { useDebounce } from '@/lib/utils';
 import { FaceItem } from '@/components/FaceItem';
 
 const buttonStyle = `border rounded-md text-center hover:cursor-pointer select-none`;
@@ -110,12 +107,14 @@ export default function ManageFaces() {
                     <Button
                         type={"Emphasize"}
                         text={`Upload`}
+                        Icon={IoMdCloudUpload}
                         callback={() => { router.push("./upload_face") }}
                         disableWhen={false}
-                        excessStyles={`w-20 h-10`} />
+                        excessStyles={`w-24 h-10`} />
                     <Button
                         type={"Regular"}
                         text={`Compare`}
+                        Icon={IoIosGitCompare}
                         callback={() => { router.push("./compare_face") }}
                         disableWhen={false}
                         excessStyles={`w-25 h-10`} />
@@ -152,6 +151,7 @@ export default function ManageFaces() {
                     <Button
                         type={"Regular"}
                         text={`Start`}
+                        Icon={null}
                         callback={() => { setCurPage(0); }}
                         disableWhen={curPage <= 0}
                         excessStyles={`w-[3.5em]`} />
@@ -159,6 +159,7 @@ export default function ManageFaces() {
                     <Button
                         type={"Regular"}
                         text={`Prev`}
+                        Icon={null}
                         callback={() => {
                             if (curPage > 0) {
                                 setCurPage(curPage - 1);
@@ -191,6 +192,7 @@ export default function ManageFaces() {
                     <Button
                         type={"Regular"}
                         text={`Next`}
+                        Icon={null}
                         callback={() => {
                             if (curPage < Math.ceil(numTotal / pageMaxNum) - 1) {
                                 setCurPage(curPage + 1);
@@ -203,6 +205,7 @@ export default function ManageFaces() {
                     <Button
                         type={"Regular"}
                         text={`End`}
+                        Icon={null}
                         callback={() => {
                             if (curPage < Math.ceil(numTotal / pageMaxNum) - 1) {
                                 setCurPage(Math.ceil(numTotal / pageMaxNum) - 1);

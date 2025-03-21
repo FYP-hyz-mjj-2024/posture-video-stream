@@ -6,7 +6,12 @@ import { IconType } from "react-icons";
  * @param props 
  * @returns 
  */
-export const NavigationButton = (props: { to: string, text: string, router: NextRouter, Icon: IconType }) => {
+export const NavigationButton = (props: {
+    to: string,
+    text: string,
+    router: NextRouter,
+    Icon: IconType
+}) => {
     const { to, text, router, Icon } = props;
     return (
         <div className={`flex flex-row`} onClick={() => { router.push(to); }}>
@@ -22,36 +27,44 @@ export const NavigationButton = (props: { to: string, text: string, router: Next
 export const Button = (props: {
     type: "Regular" | "Emphasize",
     text: string,
+    Icon: IconType | null,
     callback: () => void,
     disableWhen: boolean,
     excessStyles: string
 }) => {
-    const { type, text, callback, disableWhen, excessStyles } = props;
-    const baseStyle = `border rounded-md text-center hover:cursor-pointer select-none`;
+    const { type, text, Icon, callback, disableWhen, excessStyles } = props;
+    const baseStyle = `border rounded-md flex flex-row gap-1 text-center hover:cursor-pointer select-none`;
 
     let style;
-    if (type === "Regular") {
-        style = `
-            flex flex-col items-center justify-center
+    switch (type) {
+        case "Regular":
+            style = `
+            items-center justify-center
             border-ui-line dark:border-ui-line-dark 
             hover:bg-ui-area dark:hover:bg-ui-area-dark px-3
-        `
-    } else if (type === "Emphasize") {
-        style = `
-            flex flex-col items-center justify-center
+        `;
+            break;
+        case "Emphasize":
+            style = `
+            items-center justify-center
             border-ui-line-green bg-ui-area-green 
             hover:bg-ui-line-green text-white font-bold 
-            `
-    } else {
-        style = ""
+            `;
+            break;
+        default:
+            style = "";
     }
 
     return (
         <div className={`${baseStyle} ${style} ${excessStyles} ${disableWhen && `opacity-50`}`}
             onClick={() => {
+                if (disableWhen) return;
                 callback();
             }}>
-            <p>{text}</p>
+            {Icon && (
+                <Icon />
+            )}
+            <span className={`inline-block align-top`}>{text}</span>
         </div>
     );
 };
