@@ -47,7 +47,7 @@ export const FaceItem = (props: { arrId: number, face: Face, faces: Face[], }) =
                 onAuthFailCallback: (e) => {
                     const message = _getErrorMessage(e);
                     window.alert(message);
-                    router.push("/")
+                    router.push("/");
                 },
                 onSuccessCallback: (response) => { router.reload(); },
                 onFailCallback: (e) => {
@@ -76,10 +76,10 @@ export const FaceItem = (props: { arrId: number, face: Face, faces: Face[], }) =
                             {face.description}
                         </div>
                     )}
-                    <div className={`text-sm opacity-60 max-lg:hidden`}>
+                    <div className={`text-sm max-lg:hidden text-gray-400`}>
                         {face.id}
                     </div>
-                    <div className={`text-sm opacity-60`}>
+                    <div className={`text-sm text-gray-400`}>
                         {moment(face.uploaded_at).format("YYYY-MM-DD HH:mm:ss Z")}
                     </div>
                 </div>
@@ -120,7 +120,7 @@ export const FaceItem = (props: { arrId: number, face: Face, faces: Face[], }) =
                                     onAuthFailCallback: (e) => {
                                         const message = _getErrorMessage(e);
                                         window.alert(message);
-                                        router.push("/")
+                                        router.push("/");
                                     },
                                     onSuccessCallback: (response) => { router.reload(); },
                                     onFailCallback: (e) => {

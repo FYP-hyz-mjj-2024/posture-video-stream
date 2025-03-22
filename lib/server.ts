@@ -227,11 +227,11 @@ export async function deleteFace(
  * @param callbacks
  * @returns  
  * */
-export async function findFace(
-    faceFindByDescSubmit: FaceFindByDescSubmit,
+export async function findFaces(
+    faceFindByDescSubmit: FacesFindByDescSubmit,
     callbacks: {
         onAuthFailCallback: (e: any) => void,
-        onSuccessCallback: (response: AxiosResponse<FaceFindResult>) => void,
+        onSuccessCallback: (response: AxiosResponse<FacesFindResult>) => void,
         onFailCallback: (e: any) => void
     }
 ) {
@@ -252,7 +252,7 @@ export async function findFace(
     }
 
     axios.post(
-        `${process.env.NEXT_PUBLIC_DB_DOMAIN}/face/find_face/`,
+        `${process.env.NEXT_PUBLIC_DB_DOMAIN}/face/find_faces/`,
         faceFindDesc
     ).then((response) => {
         callbacks.onSuccessCallback(response);

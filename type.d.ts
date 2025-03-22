@@ -271,12 +271,12 @@ type FaceDelete = UserAuth & {
  * Face find by description request body.
  * @param description Description.
  */
-type FaceFindByDescSubmit = {
+type FacesFindByDescSubmit = {
     description: string,
 }
 
-type FaceFindByDesc = UserAuth & FaceFindByDescSubmit;
+type FacesFindByDesc = UserAuth & FacesFindByDescSubmit;
 
-type FaceFindResult = {
-    face: Face,
+type FacesFindResult = {
+    faces: Face[],
 }

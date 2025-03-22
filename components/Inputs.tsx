@@ -10,7 +10,7 @@ import { FaMagnifyingGlass, FaCircleXmark } from 'react-icons/fa6';
 // Local
 import { handleFileInputClick, handleFileInputDrop } from "@/lib/files";
 import { useDebounce } from "@/lib/utils";
-import { _getErrorMessage, findFace } from "@/lib/server";
+import { _getErrorMessage, findFaces } from "@/lib/server";
 import { checkFileTypeFromBase64 } from "@/lib/files";
 
 /**
@@ -89,12 +89,21 @@ export const ImageInput = (props: {
 export const FaceSearchBar = (props: { router: NextRouter }) => {
     const { router } = props;
     const [isActive, setIsActive] = useState<boolean>(false);
-    const [prompt, setPrompt] = useState<"Loading" | "No result." | null>("Loading");
-    const [faceDetail, setFaceDetail] = useState<Face | null>(null);
+    const [prompt, setPrompt] = useState<"Search Faces!" | "Loading..." | "No result." | null>("Search Faces!");
+    const [faces, setFaces] = useState<Face[] | []>([]);
 
-    const d_findFace = useDebounce(findFace, 500);
+    const d_findFace = useDebounce(findFaces, 500);
 
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    const restore = () => {
+        setIsActive(false);
+        if (textareaRef.current) {
+            textareaRef.current.value = "";
+        }
+        setFaces([]);
+        setPrompt("Search Faces!");
+    }
 
 
     // Use ESC key to cancel search.
@@ -102,10 +111,7 @@ export const FaceSearchBar = (props: { router: NextRouter }) => {
 
         const handleEscKey = (event: KeyboardEvent) => {
             if (event.key === "Escape") {
-                setIsActive(false);
-                if (textareaRef.current) {
-                    textareaRef.current.value = "";
-                }
+                restore();
             }
         };
 
@@ -130,20 +136,17 @@ export const FaceSearchBar = (props: { router: NextRouter }) => {
                 placeholder={`Search Face`}
                 onFocus={() => { setIsActive(true); }}
                 onBlur={() => {
-                    setIsActive(false);
-                    if (textareaRef.current) {
-                        textareaRef.current.value = "";
-                    }
+                    restore();
                 }}
                 onChange={(event: React.ChangeEvent<HTMLTextAreaElement>) => {
-                    setPrompt("Loading");
+                    setPrompt("Loading...");
                     if (event.target.value == "") {
                         setPrompt("No result.");
                     }
                     d_findFace(
                         {
                             description: event.target.value,
-                        } as FaceFindByDescSubmit,
+                        } as FacesFindByDescSubmit,
                         {
                             onAuthFailCallback: (e) => {
                                 const message = _getErrorMessage(e);
@@ -152,7 +155,8 @@ export const FaceSearchBar = (props: { router: NextRouter }) => {
                             },
                             onSuccessCallback: (response) => {
                                 setPrompt(null);
-                                setFaceDetail(response.data.face);
+                                setFaces(response.data.faces);
+                                console.log(response.data.faces);
                             },
                             onFailCallback: (e) => {
                                 setPrompt("No result.");
@@ -171,28 +175,31 @@ export const FaceSearchBar = (props: { router: NextRouter }) => {
 
             {isActive && (
                 <div className={`
-                    absolute top-11 right-0 w-96 h-20 p-2 rounded-md 
+                    absolute top-11 right-0 w-96 p-2 rounded-md 
                     border border-ui-line dark:border-ui-line-dark
                     bg-white dark:bg-ui-area-dark drop-shadow-md
-                    flex flex-col justify-center
+                    flex flex-col gap-2 justify-top
+                    max-h-96 overflow-y-scroll
                 `}>
-                    {prompt || !faceDetail ? (
+                    {prompt || !faces ? (
                         <div className={`align-top`}>
                             {prompt}
                         </div>) : (
-                        <div className={`flex flex-row items-center justify-between`}>
-                            <div>
-                                <p className={`font-bold`}>{faceDetail.description}</p>
-                                <p className={`text-sm opacity-50`}>{faceDetail.id}</p>
-                                <p className={`text-sm opacity-50`}>{faceDetail.uploaded_at}</p>
+                        faces.map((face, id) => (
+                            <div key={id} className={`flex flex-row items-center justify-between`}>
+                                <div>
+                                    <p className={`font-bold`}>{face.description}</p>
+                                    <p className={`text-sm opacity-50`}>{face.id}</p>
+                                    <p className={`text-sm opacity-50`}>{face.uploaded_at}</p>
+                                </div>
+                                <Image
+                                    className={`rounded-md w-16 h-16 object-cover`}
+                                    src={`data:image/${checkFileTypeFromBase64(face.blob.slice(0, 15))};base64,${face.blob}`}
+                                    alt={face.description}
+                                    width={70}
+                                    height={70} />
                             </div>
-                            <Image
-                                className={`rounded-md w-16 h-16 object-cover`}
-                                src={`data:image/${checkFileTypeFromBase64(faceDetail.blob.slice(0, 15))};base64,${faceDetail.blob}`}
-                                alt={faceDetail.description}
-                                width={70}
-                                height={70} />
-                        </div>
+                        ))
                     )}
                 </div>
             )}
