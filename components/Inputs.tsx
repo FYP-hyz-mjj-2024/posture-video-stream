@@ -177,29 +177,29 @@ export const FaceSearchBar = (props: { router: NextRouter }) => {
                 <div className={`
                     absolute top-11 right-0 w-96 p-2 rounded-md 
                     border border-ui-line dark:border-ui-line-dark
-                    bg-white dark:bg-ui-area-dark drop-shadow-md
-                    flex flex-col gap-2 justify-top
-                    max-h-96 overflow-y-scroll
+                    bg-white dark:bg-ui-area-dark drop-shadow-md    
                 `}>
                     {prompt || !faces ? (
                         <div className={`align-top`}>
                             {prompt}
                         </div>) : (
-                        faces.map((face, id) => (
-                            <div key={id} className={`flex flex-row items-center justify-between`}>
-                                <div>
-                                    <p className={`font-bold`}>{face.description}</p>
-                                    <p className={`text-sm opacity-50`}>{face.id}</p>
-                                    <p className={`text-sm opacity-50`}>{face.uploaded_at}</p>
+                        <div className={`flex flex-col justify-top gap-2 max-h-96 overflow-y-auto`}>
+                            {faces.map((face, id) => (
+                                <div key={id} className={`flex flex-row items-center justify-between`}>
+                                    <div>
+                                        <p className={`font-bold`}>{face.description}</p>
+                                        <p className={`text-sm opacity-50`}>{face.id}</p>
+                                        <p className={`text-sm opacity-50`}>{face.uploaded_at}</p>
+                                    </div>
+                                    <Image
+                                        className={`rounded-md w-16 h-16 object-cover`}
+                                        src={`data:image/${checkFileTypeFromBase64(face.blob.slice(0, 15))};base64,${face.blob}`}
+                                        alt={face.description}
+                                        width={70}
+                                        height={70} />
                                 </div>
-                                <Image
-                                    className={`rounded-md w-16 h-16 object-cover`}
-                                    src={`data:image/${checkFileTypeFromBase64(face.blob.slice(0, 15))};base64,${face.blob}`}
-                                    alt={face.description}
-                                    width={70}
-                                    height={70} />
-                            </div>
-                        ))
+                            ))}
+                        </div>
                     )}
                 </div>
             )}
