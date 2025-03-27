@@ -80,6 +80,7 @@ interface User {
     created_at: string,
     email: string,
     name: string,
+    permissions: number,
 };
 
 /** 

@@ -1,7 +1,7 @@
 // Site Packages
 import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from "next/router";
-import { IoGrid } from 'react-icons/io5';
+import { IoGrid, IoPeople } from 'react-icons/io5';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -15,7 +15,7 @@ import Indicator from "@/components/Indicator";
 // Local Data Components
 import codes from "@/data/WSCode";
 import { WS_URL } from "@/utils/pathMap";
-import { getUser, logOut } from "@/lib/auth";
+import { getUser, logOut, permissions } from "@/lib/auth";
 import { _getErrorMessage, compareFace } from '@/lib/server';
 import { useDebounce } from "@/lib/utils"
 
@@ -360,6 +360,8 @@ export default function Home() {
         {userData && (
           <div className='flex flex-row gap-2 items-center justify-center mt-4'>
             <NavigationButton to={"/face/manage_faces"} text={`Manage Faces`} Icon={IoGrid} router={router} />
+            {Boolean(userData.permissions & permissions.GRANT_PERMISSION) &&
+              (<NavigationButton to={"/face/manage_users"} text={`Manage Users`} Icon={IoPeople} router={router} />)}
           </div>
         )}
       </div>

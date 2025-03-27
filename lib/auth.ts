@@ -1,6 +1,18 @@
 import axios from "axios"
 import { NextRouter } from "next/router";
 
+export const permissions = {
+    NO_PERMISSIONS: 1,
+    READ: 1 << 0,
+    WRITE: 1 << 1,
+    DELETE: 1 << 2,
+    UPDATE: 1 << 3,
+    RESERVE_1: 1 << 4,
+    RESERVE_2: 1 << 5,
+    DELETE_USERS: 1 << 6,
+    GRANT_PERMISSION: 1 << 7,
+};
+
 /**
  * User Log out.
  * @param router NextRouter object.
