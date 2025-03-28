@@ -48,6 +48,47 @@ export async function verifyEmailSuper(
 
 
 /**
+ * Super user grant permission to non-super users.
+ * @param requester_user_id 
+ * @param permission 
+ * @param callbacks 
+ */
+export async function grantPermission(
+    requester_user_id: string,
+    permission: number,
+    callbacks: {
+        onAuthFailCallback: (e: any) => void,
+        onSuccessCallback: (response: AxiosResponse<FaceCompareResults>) => void,
+        onFailCallback: (e: any) => void
+    }) {
+    const operator_user_id = localStorage.getItem("user_id");
+    const token = localStorage.getItem("token");
+    if (!operator_user_id || !token) {
+        callbacks.onAuthFailCallback({
+            localMessage: "Your login info is expired. Please re-login."
+        });
+    }
+
+    axios.post(
+        `${process.env.NEXT_PUBLIC_DB_DOMAIN}/user/grant_permission/`,
+        {
+            requester_user_id: requester_user_id,
+            operator_user_id: operator_user_id,
+            token: token,
+            permission: permission,
+        }
+    ).then((response) => {
+        if (!response) return;
+        callbacks.onSuccessCallback(response);
+    }).catch((e) => {
+        callbacks.onFailCallback(e);
+    });
+
+}
+
+
+
+/**
  * Upload a face, and get the comparasion result.
  * @param faceCompareSubmit Face upload submit data: user_id, token, blob.
  * @param callbacks

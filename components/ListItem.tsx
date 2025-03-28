@@ -9,9 +9,10 @@ import { IoMdTrash } from "react-icons/io";
 import { AiFillEdit, } from "react-icons/ai";
 import { FaCheck, FaXmark } from "react-icons/fa6";
 import { useRouter } from "next/router";
-import { useForm } from "react-hook-form";
+import { set, useForm } from "react-hook-form";
 
-import { _getErrorMessage, deleteFace, updateFace, verifyEmailSuper } from "@/lib/server";
+import { permissions } from "@/lib/auth";
+import { _getErrorMessage, deleteFace, grantPermission, updateFace, verifyEmailSuper } from "@/lib/server";
 import { checkFileTypeFromBase64 } from "@/lib/files";
 
 export const FaceItem = (props: { arrId: number, face: Face, faces: Face[], }) => {
@@ -150,8 +151,13 @@ export const FaceItem = (props: { arrId: number, face: Face, faces: Face[], }) =
 export const UserItem = (props: { arrId: number, user: UserSuper, users: UserSuper[], }) => {
     const router = useRouter();
     const { arrId, user: user, users } = props;
+    const [isEditing, setIsEditing] = useState<boolean>(false);
 
     const d_verifyEmailSuper = useDebounce(verifyEmailSuper, 500);
+    const d_grantPermission = useDebounce(grantPermission, 500);
+
+    const userPermissionsBinary = user.permissions.toString(2).padStart(8, "0");
+    const permissionsList = Object.entries(permissions).reverse();
 
     return (
         <div className={
@@ -172,18 +178,56 @@ export const UserItem = (props: { arrId: number, user: UserSuper, users: UserSup
                 </div>
             </div>
 
-            <div className={`flex flex-row items-center justify-center gap-2`}>
-                <div className={`flex flex-row items-left opacity-50`}>
-                    <span className={`align-baseline`}>{`Verified: `}</span>
+            <div className={`flex flex-col items-end justify-center`}>
+                <div className={`flex flex-row items-center justify-center gap-2`}>
+                    <div className={`flex flex-row items-left opacity-50`}>
+                        <span className={`align-baseline`}>{`Verified: `}</span>
+                    </div>
+                    <div className={`flex flex-row items-center justify-center`}>
+                        {user.is_verified ? (
+                            <FaCheck className={`text-green-500`} />
+                        ) : (
+                            <FaXmark className={`text-red-500 hover:cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-700`}
+                                onClick={() => {
+                                    // console.log(user.user_id);
+                                    d_verifyEmailSuper(user.user_id, {
+                                        onAuthFailCallback: (e) => {
+                                            const message = _getErrorMessage(e);
+                                            window.alert(message);
+                                            router.push("/");
+                                        },
+                                        onSuccessCallback: (response) => {
+                                            router.reload();
+                                        },
+                                        onFailCallback: (e) => {
+                                            const message = _getErrorMessage(e);
+                                            window.alert(message);
+                                        }
+                                    });
+                                }} />
+                        )}
+                    </div>
                 </div>
-                <div className={`flex flex-row items-center justify-center`}>
-                    {user.is_verified ? (
-                        <FaCheck className={`text-green-500`} />
+                <div>
+                    {!isEditing ? (
+                        <div className={`flex flex-row gap-2`} onClick={(e) => {
+                            setIsEditing(true);
+                        }}>
+                            {userPermissionsBinary.split("").map((bit, id) => (
+                                <div>
+                                    <span className={`${!Boolean(Number(bit)) && `opacity-50`}`}>{permissionsList[id][0]}</span>
+                                    {/* <span>{bit}</span> */}
+                                </div>
+                            ))}
+                        </div>
                     ) : (
-                        <FaXmark className={`text-red-500 hover:cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-700`}
-                            onClick={() => {
-                                // console.log(user.user_id);
-                                d_verifyEmailSuper(user.user_id, {
+                        <select
+                            onBlur={(e) => {
+                                setIsEditing(false);
+                            }}
+                            onChange={(e) => {
+                                console.log(e.target.value);
+                                d_grantPermission(user.user_id, Number(e.target.value), {
                                     onAuthFailCallback: (e) => {
                                         const message = _getErrorMessage(e);
                                         window.alert(message);
@@ -196,8 +240,13 @@ export const UserItem = (props: { arrId: number, user: UserSuper, users: UserSup
                                         const message = _getErrorMessage(e);
                                         window.alert(message);
                                     }
-                                });
-                            }} />
+                                })
+                                setIsEditing(false);
+                            }}>
+                            {Object.entries(permissions).map(([key, value], id) => (
+                                <option value={value}>{key}</option>
+                            ))}
+                        </select>
                     )}
                 </div>
             </div>

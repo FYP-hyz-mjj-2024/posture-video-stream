@@ -104,6 +104,13 @@ type EmailVerifySuper = UserAuth & {
     verify_user_id: string,
 };
 
+type PermissionGrant = {
+    operator_user_id: string,
+    requester_user_id: string,
+    token: string,
+    permission: number
+}
+
 /** 
  * @abstract User Login 
  */

@@ -2,7 +2,7 @@ import axios from "axios"
 import { NextRouter } from "next/router";
 
 export const permissions = {
-    NO_PERMISSIONS: 1,
+    // NO_PERMISSIONS: 0,
     READ: 1 << 0,
     WRITE: 1 << 1,
     DELETE: 1 << 2,
