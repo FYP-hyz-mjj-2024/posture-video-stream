@@ -53,9 +53,10 @@ export async function verifyEmailSuper(
  * @param permission 
  * @param callbacks 
  */
-export async function grantPermission(
+export async function editPermission(
     requester_user_id: string,
     permission: number,
+    grant: boolean,
     callbacks: {
         onAuthFailCallback: (e: any) => void,
         onSuccessCallback: (response: AxiosResponse<FaceCompareResults>) => void,
@@ -63,20 +64,25 @@ export async function grantPermission(
     }) {
     const operator_user_id = localStorage.getItem("user_id");
     const token = localStorage.getItem("token");
+
     if (!operator_user_id || !token) {
         callbacks.onAuthFailCallback({
             localMessage: "Your login info is expired. Please re-login."
         });
+        return;
     }
 
+    const permissionEdit: PermissionEdit = {
+        grant: grant,
+        requester_user_id: requester_user_id,
+        operator_user_id: operator_user_id,
+        token: token,
+        permission: permission,
+    };
+
     axios.post(
-        `${process.env.NEXT_PUBLIC_DB_DOMAIN}/user/grant_permission/`,
-        {
-            requester_user_id: requester_user_id,
-            operator_user_id: operator_user_id,
-            token: token,
-            permission: permission,
-        }
+        `${process.env.NEXT_PUBLIC_DB_DOMAIN}/user/edit_permission/`,
+        permissionEdit
     ).then((response) => {
         if (!response) return;
         callbacks.onSuccessCallback(response);

@@ -12,7 +12,7 @@ import { useRouter } from "next/router";
 import { set, useForm } from "react-hook-form";
 
 import { permissions } from "@/lib/auth";
-import { _getErrorMessage, deleteFace, grantPermission, updateFace, verifyEmailSuper } from "@/lib/server";
+import { _getErrorMessage, deleteFace, editPermission, updateFace, verifyEmailSuper } from "@/lib/server";
 import { checkFileTypeFromBase64 } from "@/lib/files";
 
 export const FaceItem = (props: { arrId: number, face: Face, faces: Face[], }) => {
@@ -151,10 +151,9 @@ export const FaceItem = (props: { arrId: number, face: Face, faces: Face[], }) =
 export const UserItem = (props: { arrId: number, user: UserSuper, users: UserSuper[], }) => {
     const router = useRouter();
     const { arrId, user: user, users } = props;
-    const [isEditing, setIsEditing] = useState<boolean>(false);
 
     const d_verifyEmailSuper = useDebounce(verifyEmailSuper, 500);
-    const d_grantPermission = useDebounce(grantPermission, 500);
+    const d_editPermission = useDebounce(editPermission, 500);
 
     const userPermissionsBinary = user.permissions.toString(2).padStart(8, "0");
     const permissionsList = Object.entries(permissions).reverse();
@@ -208,47 +207,41 @@ export const UserItem = (props: { arrId: number, user: UserSuper, users: UserSup
                         )}
                     </div>
                 </div>
-                <div>
-                    {!isEditing ? (
-                        <div className={`flex flex-row gap-2`} onClick={(e) => {
-                            setIsEditing(true);
-                        }}>
-                            {userPermissionsBinary.split("").map((bit, id) => (
-                                <div>
-                                    <span className={`${!Boolean(Number(bit)) && `opacity-50`}`}>{permissionsList[id][0]}</span>
-                                    {/* <span>{bit}</span> */}
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <select
-                            onBlur={(e) => {
-                                setIsEditing(false);
-                            }}
-                            onChange={(e) => {
-                                console.log(e.target.value);
-                                d_grantPermission(user.user_id, Number(e.target.value), {
-                                    onAuthFailCallback: (e) => {
-                                        const message = _getErrorMessage(e);
-                                        window.alert(message);
-                                        router.push("/");
-                                    },
-                                    onSuccessCallback: (response) => {
-                                        router.reload();
-                                    },
-                                    onFailCallback: (e) => {
-                                        const message = _getErrorMessage(e);
-                                        window.alert(message);
-                                    }
-                                })
-                                setIsEditing(false);
+
+                <div className={`flex flex-row gap-2`}>
+                    {userPermissionsBinary.split("").map((bit, id) => (
+                        <div
+                            key={id}
+                            className={`
+                                hover:cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 
+                                rounded-lg px-1 py-1 transition-all`}
+                            onClick={() => {
+                                const permissionInt = Number(permissionsList[id][1]);
+                                const grant = !Boolean(Number(bit));
+                                d_editPermission(
+                                    user.user_id,
+                                    permissionInt,
+                                    grant,
+                                    {
+                                        onAuthFailCallback: (e) => {
+                                            const message = _getErrorMessage(e);
+                                            window.alert(message);
+                                            router.push("/");
+                                        },
+                                        onSuccessCallback: (response) => {
+                                            router.reload();
+                                        },
+                                        onFailCallback: (e) => {
+                                            const message = _getErrorMessage(e);
+                                            window.alert(message);
+                                        }
+                                    })
                             }}>
-                            {Object.entries(permissions).map(([key, value], id) => (
-                                <option value={value}>{key}</option>
-                            ))}
-                        </select>
-                    )}
+                            <span className={`${!Boolean(Number(bit)) && `opacity-50`}`}>{permissionsList[id][0]}</span>
+                        </div>
+                    ))}
                 </div>
+
             </div>
         </div>
     );

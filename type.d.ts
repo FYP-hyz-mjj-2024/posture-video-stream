@@ -104,7 +104,8 @@ type EmailVerifySuper = UserAuth & {
     verify_user_id: string,
 };
 
-type PermissionGrant = {
+type PermissionEdit = {
+    grant: boolean,
     operator_user_id: string,
     requester_user_id: string,
     token: string,
