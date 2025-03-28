@@ -8,7 +8,7 @@ import { IoMdArrowBack, IoMdCloudUpload, IoIosGitCompare } from "react-icons/io"
 // Local
 import { guardPage } from '@/lib/auth';
 import { NavigationButton, Button } from '@/components/buttons';
-import { FaceItem } from '@/components/FaceItem';
+import { FaceItem } from '@/components/ListItem';
 import { FaceSearchBar } from '@/components/Inputs';
 
 
@@ -18,7 +18,7 @@ export default function ManageFaces() {
     const router = useRouter();
 
     // Data
-    const [userData, setUserData] = useState<User | null>(null);
+    const [userData, setUserData] = useState<UserBasic | null>(null);
     const [faces, setFaces] = useState<Face[]>([]);
 
     // Pagination

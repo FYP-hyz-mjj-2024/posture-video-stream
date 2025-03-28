@@ -6,11 +6,12 @@ import axios from "axios";
 import { useDebounce } from "@/lib/utils";
 import moment from "moment";
 import { IoMdTrash } from "react-icons/io";
-import { AiFillEdit } from "react-icons/ai";
+import { AiFillEdit, } from "react-icons/ai";
+import { FaCheck, FaXmark } from "react-icons/fa6";
 import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
 
-import { _getErrorMessage, deleteFace, updateFace } from "@/lib/server";
+import { _getErrorMessage, deleteFace, updateFace, verifyEmailSuper } from "@/lib/server";
 import { checkFileTypeFromBase64 } from "@/lib/files";
 
 export const FaceItem = (props: { arrId: number, face: Face, faces: Face[], }) => {
@@ -143,5 +144,63 @@ export const FaceItem = (props: { arrId: number, face: Face, faces: Face[], }) =
                 </div>
             </div>
         </form>
+    );
+}
+
+export const UserItem = (props: { arrId: number, user: UserSuper, users: UserSuper[], }) => {
+    const router = useRouter();
+    const { arrId, user: user, users } = props;
+
+    const d_verifyEmailSuper = useDebounce(verifyEmailSuper, 500);
+
+    return (
+        <div className={
+            `flex flex-row border-x border-b border-ui-line 
+            dark:border-ui-line-dark px-4 py-3 justify-between
+            ${arrId == users.length - 1 && `rounded-bl-lg rounded-br-lg`}`}>
+
+            {/** Face description and ID */}
+            <div>
+                <div className={`font-bold`}>
+                    {user.name}
+                </div>
+                <div className={`text-sm max-lg:hidden text-gray-400`}>
+                    {user.user_id}
+                </div>
+                <div className={`text-sm text-gray-400`}>
+                    {moment(user.created_at).format("YYYY-MM-DD HH:mm:ss Z")}
+                </div>
+            </div>
+
+            <div className={`flex flex-row items-center justify-center gap-2`}>
+                <div className={`flex flex-row items-left opacity-50`}>
+                    <span className={`align-baseline`}>{`Verified: `}</span>
+                </div>
+                <div className={`flex flex-row items-center justify-center`}>
+                    {user.is_verified ? (
+                        <FaCheck className={`text-green-500`} />
+                    ) : (
+                        <FaXmark className={`text-red-500 hover:cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-700`}
+                            onClick={() => {
+                                // console.log(user.user_id);
+                                d_verifyEmailSuper(user.user_id, {
+                                    onAuthFailCallback: (e) => {
+                                        const message = _getErrorMessage(e);
+                                        window.alert(message);
+                                        router.push("/");
+                                    },
+                                    onSuccessCallback: (response) => {
+                                        router.reload();
+                                    },
+                                    onFailCallback: (e) => {
+                                        const message = _getErrorMessage(e);
+                                        window.alert(message);
+                                    }
+                                });
+                            }} />
+                    )}
+                </div>
+            </div>
+        </div>
     );
 }

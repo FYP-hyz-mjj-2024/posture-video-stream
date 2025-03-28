@@ -4,6 +4,50 @@ import { _compressImage, _dataURLtoFile, _fileToBase64 } from "./files";
 
 
 /**
+ * Manual email verification by super user.
+ * @param verifyUserId User id for email verification.
+ * @param callbacks 
+ * @returns 
+ */
+export async function verifyEmailSuper(
+    verifyUserId: string,
+    callbacks: {
+        onAuthFailCallback: (e: any) => void,
+        onSuccessCallback: (response: AxiosResponse<FaceCompareResults>) => void,
+        onFailCallback: (e: any) => void
+    }
+) {
+    const user_id = localStorage.getItem("user_id");
+    const token = localStorage.getItem("token");
+
+    if (!user_id || !token) {
+        callbacks.onAuthFailCallback({
+            localMessage: "Your login info is expired. Please re-login."
+        });
+        return;
+    }
+
+    const emailVerifySuper: EmailVerifySuper = {
+        user_id: user_id,
+        token: token,
+        verify_user_id: verifyUserId,
+    };
+
+
+    axios.post(
+        `${process.env.NEXT_PUBLIC_DB_DOMAIN}/user/verify_email_super/`,
+        emailVerifySuper
+    ).then((response) => {
+        if (!response) return;
+        callbacks.onSuccessCallback(response);
+    }).catch((e: AxiosError) => {
+        callbacks.onFailCallback(e);
+    })
+
+};
+
+
+/**
  * Upload a face, and get the comparasion result.
  * @param faceCompareSubmit Face upload submit data: user_id, token, blob.
  * @param callbacks

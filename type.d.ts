@@ -75,12 +75,33 @@ type WSMessages = WSVideoFrameMsg | WSFaceAnnounceMsg | WSTerminateMsg;
  * @param email Email of the user.
  * @param name Name of the user.
  */
-interface User {
+interface UserBasic {
     user_id: string,
     created_at: string,
     email: string,
     name: string,
     permissions: number,
+};
+
+
+type UserSuper = UserBasic & {
+    password_hash: string,
+    is_verified: boolean,
+};
+
+type UsersGet = UserAuth & {
+    range_from: number,
+    range_to: number,
+}
+
+interface UsersGetResult {
+    num_total: number,
+    num_this_page: number,
+    users: UserSuper[],
+}
+
+type EmailVerifySuper = UserAuth & {
+    verify_user_id: string,
 };
 
 /** 
@@ -151,6 +172,10 @@ type UserAuth = {
     user_id: string;
     token: string;
 };
+
+
+// type UsersGet
+
 
 /**
  * @description Face related types and interfaces.

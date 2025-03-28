@@ -45,7 +45,7 @@ const _getBase64FromWSMsg = (wsOnMessageEvent: MessageEvent<string>) => {
 
 export default function Home() {
   const router = useRouter();
-  const [userData, setUserData] = useState<User | null>(null);
+  const [userData, setUserData] = useState<UserBasic | null>(null);
 
   // Debounce face compare for 500 seconds.
   const d_compareFace = useDebounce(compareFace, 500);
@@ -361,7 +361,7 @@ export default function Home() {
           <div className='flex flex-row gap-2 items-center justify-center mt-4'>
             <NavigationButton to={"/face/manage_faces"} text={`Manage Faces`} Icon={IoGrid} router={router} />
             {Boolean(userData.permissions & permissions.GRANT_PERMISSION) &&
-              (<NavigationButton to={"/face/manage_users"} text={`Manage Users`} Icon={IoPeople} router={router} />)}
+              (<NavigationButton to={"/user/manage_users"} text={`Manage Users`} Icon={IoPeople} router={router} />)}
           </div>
         )}
       </div>
