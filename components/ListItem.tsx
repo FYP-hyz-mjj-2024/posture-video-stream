@@ -222,6 +222,15 @@ export const UserItem = (props: { arrId: number, user: UserSuper, users: UserSup
                                 hover:cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 
                                 rounded-lg px-1 py-1 transition-all`}
                             onClick={() => {
+                                const thisUserId = localStorage.getItem("user_id");
+                                if (thisUserId == user.user_id &&
+                                    !window.confirm(
+                                        "Are you sure you want to revoke this permission for yourself? This operation is very dangerous and can't be revoked."
+                                    )
+                                ) {
+                                    return;
+                                }
+
                                 const permissionInt = Number(permissionsList[id][1]);
                                 const grant = !Boolean(Number(bit));
                                 d_editPermission(

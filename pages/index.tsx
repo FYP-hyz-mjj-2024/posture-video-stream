@@ -5,7 +5,8 @@ import { IoGrid, IoPeople } from 'react-icons/io5';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
-  CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend
+  CategoryScale, LinearScale, PointElement, LineElement,
+  Title, Tooltip, Legend
 } from 'chart.js';
 
 // Local UI Components
