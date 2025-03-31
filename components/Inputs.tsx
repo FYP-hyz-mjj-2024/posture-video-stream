@@ -6,6 +6,7 @@ import Image from "next/image";
 import { UseFormSetValue, UseFormWatch } from "react-hook-form";
 import { IconType } from "react-icons";
 import { FaMagnifyingGlass, FaCircleXmark } from 'react-icons/fa6';
+import { AxiosResponse } from "axios";
 
 // Local
 import { handleFileInputClick, handleFileInputDrop } from "@/lib/files";
@@ -81,18 +82,27 @@ export const ImageInput = (props: {
     );
 }
 
+
 /**
- * The real-time search bar that searches faces.
+ * Perform blur-searching.
  * @param props 
  * @returns 
  */
-export const FaceSearchBar = (props: { router: NextRouter }) => {
-    const { router } = props;
+export const SearchBar = <TRequestItem, TResultItem,>(props: {
+    children: (props: { resultItem: TResultItem, key: number }) => React.ReactNode,
+    router: NextRouter,
+    searchFunc: (
+        submitData: any,
+        callbacks: RequestCallbacks<TResultItem>
+    ) => void,
+    placeholder: string,
+}) => {
+    const { children, router, searchFunc, placeholder } = props;
     const [isActive, setIsActive] = useState<boolean>(false);
-    const [prompt, setPrompt] = useState<"Search Faces!" | "Loading..." | "No result." | null>("Search Faces!");
-    const [faces, setFaces] = useState<Face[] | []>([]);
+    const [prompt, setPrompt] = useState<"Search!" | "Loading..." | "No result." | null>("Search!");
+    const [resultItemList, setResultItemList] = useState<TResultItem[] | []>([]);
 
-    const d_findFace = useDebounce(findFaces, 500);
+    // const d_findFace = useDebounce(findFaces, 500);
 
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -101,8 +111,8 @@ export const FaceSearchBar = (props: { router: NextRouter }) => {
         if (textareaRef.current) {
             textareaRef.current.value = "";
         }
-        setFaces([]);
-        setPrompt("Search Faces!");
+        setResultItemList([]);
+        setPrompt("Search!");
     }
 
 
@@ -124,6 +134,11 @@ export const FaceSearchBar = (props: { router: NextRouter }) => {
 
     return (
         <div className={`flex flex-col relative`}>
+            <FaMagnifyingGlass className={`absolute top-3 left-3 text-gray-400`} />
+            {isActive && (
+                <FaCircleXmark className={`absolute top-3 right-3 text-gray-400`} />
+            )}
+
             <textarea
                 ref={textareaRef}
                 className={`
@@ -133,20 +148,27 @@ export const FaceSearchBar = (props: { router: NextRouter }) => {
                     placeholder:align-middle
                 `}
                 rows={1}
-                placeholder={`Search Face`}
-                onFocus={() => { setIsActive(true); }}
+                placeholder={placeholder}
+
+                // Control the display of result modal.
+                onFocus={() => {
+                    setIsActive(true);
+                }}
                 onBlur={() => {
                     restore();
                 }}
+
+                // Request when content changed.
                 onChange={(event: React.ChangeEvent<HTMLTextAreaElement>) => {
                     setPrompt("Loading...");
                     if (event.target.value == "") {
                         setPrompt("No result.");
                     }
-                    d_findFace(
+
+                    searchFunc(
                         {
-                            description: event.target.value,
-                        } as FacesFindByDescSubmit,
+                            query: event.target.value,
+                        } as TRequestItem,
                         {
                             onAuthFailCallback: (e) => {
                                 const message = _getErrorMessage(e);
@@ -155,23 +177,20 @@ export const FaceSearchBar = (props: { router: NextRouter }) => {
                             },
                             onSuccessCallback: (response) => {
                                 setPrompt(null);
-                                setFaces(response.data.faces);
-                                console.log(response.data.faces);
+                                setResultItemList(Object.values(response.data)[0] as TResultItem[]);
                             },
                             onFailCallback: (e) => {
                                 setPrompt("No result.");
                             }
-                        });
+                        }
+                    );
                 }}
+
+                // Does not allow line changing in textarea.
                 onKeyDown={(event: React.KeyboardEvent<HTMLTextAreaElement>) => {
                     if (event.key !== "Enter") return;
                     event.preventDefault();
                 }} />
-
-            <FaMagnifyingGlass className={`absolute top-3 left-3 text-gray-400`} />
-            {isActive && (
-                <FaCircleXmark className={`absolute top-3 right-3 text-gray-400`} />
-            )}
 
             {isActive && (
                 <div className={`
@@ -179,25 +198,13 @@ export const FaceSearchBar = (props: { router: NextRouter }) => {
                     border border-ui-line dark:border-ui-line-dark
                     bg-white dark:bg-ui-area-dark drop-shadow-md    
                 `}>
-                    {prompt || !faces ? (
+                    {prompt || !resultItemList ? (
                         <div className={`align-top`}>
                             {prompt}
                         </div>) : (
                         <div className={`flex flex-col justify-top gap-2 max-h-96 overflow-y-auto`}>
-                            {faces.map((face, id) => (
-                                <div key={id} className={`flex flex-row items-center justify-between`}>
-                                    <div>
-                                        <p className={`font-bold`}>{face.description}</p>
-                                        <p className={`text-sm opacity-50`}>{face.id}</p>
-                                        <p className={`text-sm opacity-50`}>{face.uploaded_at}</p>
-                                    </div>
-                                    <Image
-                                        className={`rounded-md w-16 h-16 object-cover`}
-                                        src={`data:image/${checkFileTypeFromBase64(face.blob.slice(0, 15))};base64,${face.blob}`}
-                                        alt={face.description}
-                                        width={70}
-                                        height={70} />
-                                </div>
+                            {resultItemList.map((item, id) => (
+                                children({ resultItem: item, key: id })
                             ))}
                         </div>
                     )}

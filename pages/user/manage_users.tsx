@@ -3,12 +3,15 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from "next/router";
 import axios from 'axios';
-import { IoMdArrowBack, IoMdCloudUpload, IoIosGitCompare } from "react-icons/io";
+import { IoMdArrowBack } from "react-icons/io";
 
 // Local
 import { guardPage } from '@/lib/auth';
 import { NavigationButton, Button } from '@/components/buttons';
 import { UserItem } from '@/components/ListItem';
+import { SearchBar } from '@/components/Inputs';
+import { findUsers } from '@/lib/server';
+import { useDebounce } from '@/lib/utils';
 
 const buttonStyle = `border rounded-md text-center hover:cursor-pointer select-none`;
 
@@ -99,6 +102,24 @@ export default function ManageUsers() {
                         <p>{userData?.name}</p>
                         <p className={`text-sm opacity-50 max-lg:hidden`}>{userData?.user_id}</p>
                     </div>
+
+                </div>
+
+                <div className={`flex flex-row items-center justify-end h-10 gap-2`}>
+                    <SearchBar<UsersFindByNameSubmit, UserSuper>
+                        router={router}
+                        searchFunc={useDebounce(findUsers, 500)}
+                        placeholder={`Search Users`}>
+                        {({ resultItem: user }) => (
+                            <div className={`flex flex-row items-center justify-between`}>
+                                <div>
+                                    <p className={`font-bold`}>{user.name}</p>
+                                    <p className={`text-sm opacity-50`}>{user.user_id}</p>
+                                    <p className={`text-sm opacity-50`}>{user.created_at}</p>
+                                </div>
+                            </div>
+                        )}
+                    </SearchBar>
                 </div>
 
                 {/** Title and face list */}
@@ -108,7 +129,7 @@ export default function ManageUsers() {
                         <p className={`font-bold`}>{`${curPage * pageMaxNum + numThisPage} / ${numTotal} faces`}</p>
                     </div>
 
-                    {/** Face List */}
+                    {/** User List */}
                     <div className={`flex flex-col`}>
                         {users.length > 0 ? (
                             users.map((user, id) => (

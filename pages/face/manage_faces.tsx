@@ -9,7 +9,10 @@ import { IoMdArrowBack, IoMdCloudUpload, IoIosGitCompare } from "react-icons/io"
 import { guardPage } from '@/lib/auth';
 import { NavigationButton, Button } from '@/components/buttons';
 import { FaceItem } from '@/components/ListItem';
-import { FaceSearchBar } from '@/components/Inputs';
+import { SearchBar } from '@/components/Inputs';
+import { useDebounce } from '@/lib/utils';
+import { findFaces } from '@/lib/server';
+import { checkFileTypeFromBase64 } from '@/lib/files';
 
 
 const buttonStyle = `border rounded-md text-center hover:cursor-pointer select-none`;
@@ -125,7 +128,27 @@ export default function ManageFaces() {
                         excessStyles={`w-25 h-full`} />
 
                     {/** Search Bar */}
-                    <FaceSearchBar router={router} />
+                    {/* <FaceSearchBar router={router} /> */}
+                    <SearchBar<FacesFindByDescSubmit, Face>
+                        router={router}
+                        searchFunc={useDebounce(findFaces, 500)}
+                        placeholder={`Search Faces`}>
+                        {({ resultItem: face }) => (
+                            <div className={`flex flex-row items-center justify-between`}>
+                                <div>
+                                    <p className={`font-bold`}>{face.description}</p>
+                                    <p className={`text-sm opacity-50`}>{face.id}</p>
+                                    <p className={`text-sm opacity-50`}>{face.uploaded_at}</p>
+                                </div>
+                                <img
+                                    className={`rounded-md w-16 h-16 object-cover`}
+                                    src={`data:image/${checkFileTypeFromBase64(face.blob.slice(0, 15))};base64,${face.blob}`}
+                                    alt={face.description}
+                                    width={70}
+                                    height={70} />
+                            </div>
+                        )}
+                    </SearchBar>
                 </div>
 
                 {/** Title and face list */}

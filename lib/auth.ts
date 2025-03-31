@@ -13,6 +13,17 @@ export const permissions = {
     GRANT_PERMISSION: 1 << 7,
 };
 
+export const permissionNames = {
+    1: "Read",
+    2: "Write",
+    4: "Delete",
+    8: "Update",
+    16: "R1",
+    32: "R2",
+    64: "Delete Users",
+    128: "Grant Permission",
+};
+
 /**
  * User Log out.
  * @param router NextRouter object.

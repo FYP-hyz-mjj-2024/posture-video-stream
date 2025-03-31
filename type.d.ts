@@ -6,11 +6,15 @@ type SingleKeyObj<K extends string, V> = {
     [key in K]: V;
 }
 
-type RequestCallbacks = {
-    onAuthFailCallback: Function,
-    onSuccessCallback: Function,
-    onFailCallback: Function
+type RequestCallbacks<T> = {
+    onAuthFailCallback: (e: any) => void,
+    onSuccessCallback: (response: AxiosResponse<T>) => void,
+    onFailCallback: (e: any) => void
 }
+
+type TRequestItem = {
+    [key: string]: string
+};
 
 
 /**
@@ -92,13 +96,13 @@ type UserSuper = UserBasic & {
 type UsersGet = UserAuth & {
     range_from: number,
     range_to: number,
-}
+};
 
 interface UsersGetResult {
     num_total: number,
     num_this_page: number,
     users: UserSuper[],
-}
+};
 
 type EmailVerifySuper = UserAuth & {
     verify_user_id: string,
@@ -110,7 +114,17 @@ type PermissionEdit = {
     requester_user_id: string,
     token: string,
     permission: number
-}
+};
+
+type UsersFindByNameSubmit = {
+    query: string,
+};
+
+type UsersFindByName = UserAuth & UsersFindByNameSubmit;
+
+type UsersFindResult = {
+    users: UserSuper[],
+};
 
 /** 
  * @abstract User Login 
@@ -306,7 +320,7 @@ type FaceDelete = UserAuth & {
  * @param description Description.
  */
 type FacesFindByDescSubmit = {
-    description: string,
+    query: string,
 }
 
 type FacesFindByDesc = UserAuth & FacesFindByDescSubmit;

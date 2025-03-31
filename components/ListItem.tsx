@@ -11,7 +11,7 @@ import { FaCheck, FaXmark } from "react-icons/fa6";
 import { useRouter } from "next/router";
 import { set, useForm } from "react-hook-form";
 
-import { permissions } from "@/lib/auth";
+import { permissionNames, permissions } from "@/lib/auth";
 import { _getErrorMessage, deleteFace, editPermission, updateFace, verifyEmailSuper } from "@/lib/server";
 import { checkFileTypeFromBase64 } from "@/lib/files";
 
@@ -157,6 +157,7 @@ export const UserItem = (props: { arrId: number, user: UserSuper, users: UserSup
 
     const userPermissionsBinary = user.permissions.toString(2).padStart(8, "0");
     const permissionsList = Object.entries(permissions).reverse();
+    const permissionNamesList = Object.entries(permissionNames).reverse();
 
     return (
         <div className={
@@ -169,18 +170,23 @@ export const UserItem = (props: { arrId: number, user: UserSuper, users: UserSup
                 <div className={`font-bold`}>
                     {user.name}
                 </div>
-                <div className={`text-sm max-lg:hidden text-gray-400`}>
+                <div className={`text-sm max-lg:hidden text-gray-400 max-h-5 overflow-hidden`}>
                     {user.user_id}
                 </div>
-                <div className={`text-sm text-gray-400`}>
+                <div className={`text-sm text-gray-400 max-h-5 overflow-hidden`}>
                     {moment(user.created_at).format("YYYY-MM-DD HH:mm:ss Z")}
                 </div>
             </div>
 
             <div className={`flex flex-col items-end justify-center`}>
                 <div className={`flex flex-row items-center justify-center gap-2`}>
-                    <div className={`flex flex-row items-left opacity-50`}>
-                        <span className={`align-baseline`}>{`Verified: `}</span>
+                    <div className={`flex flex-row items-left gap-2`}>
+                        <span className={`align-baseline text-gray-300 dark:text-gray-400`}>
+                            {user.email}
+                        </span>
+                        <span className={`align-baseline text-gray-300 dark:text-gray-400`}>
+                            {`Verified: `}
+                        </span>
                     </div>
                     <div className={`flex flex-row items-center justify-center`}>
                         {user.is_verified ? (
@@ -237,7 +243,9 @@ export const UserItem = (props: { arrId: number, user: UserSuper, users: UserSup
                                         }
                                     })
                             }}>
-                            <span className={`${!Boolean(Number(bit)) && `opacity-50`}`}>{permissionsList[id][0]}</span>
+                            <span className={
+                                `${!Boolean(Number(bit)) && `text-gray-300 dark:text-gray-500`}`
+                            }>{permissionNamesList[id][1]}</span>
                         </div>
                     ))}
                 </div>

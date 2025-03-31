@@ -1,5 +1,4 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
-import imageCompression from 'browser-image-compression';
 import { _compressImage, _dataURLtoFile, _fileToBase64 } from "./files";
 
 
@@ -48,7 +47,7 @@ export async function verifyEmailSuper(
 
 
 /**
- * Super user grant permission to non-super users.
+ * Superuser function: Grant or revoke permission to non-super users. One at a time.
  * @param requester_user_id 
  * @param permission 
  * @param callbacks 
@@ -90,6 +89,47 @@ export async function editPermission(
         callbacks.onFailCallback(e);
     });
 
+}
+
+
+/**
+ * Superuser function: Find a user in superuser's perspective.
+ * @param faceFindByDescSubmit 
+ * @param callbacks 
+ * @returns 
+ */
+export async function findUsers(
+    faceFindByDescSubmit: UsersFindByNameSubmit,
+    callbacks: {
+        onAuthFailCallback: (e: any) => void,
+        onSuccessCallback: (response: AxiosResponse<UsersFindResult>) => void,
+        onFailCallback: (e: any) => void
+    }
+) {
+    const user_id = localStorage.getItem("user_id");
+    const token = localStorage.getItem("token");
+
+    if (!user_id || !token) {
+        callbacks.onAuthFailCallback({
+            localMessage: "Your login info is expired. Please re-login."
+        });
+        return;
+    }
+
+    const usersFindByName = {
+        user_id: user_id,
+        token: token,
+        query: faceFindByDescSubmit.query,
+    }
+
+    axios.post(
+        `${process.env.NEXT_PUBLIC_DB_DOMAIN}/user/find_users/`,
+        usersFindByName
+    ).then((response) => {
+        callbacks.onSuccessCallback(response);
+    }).catch((e) => {
+        callbacks.onFailCallback(e);
+    });
 }
 
 
@@ -339,7 +379,7 @@ export async function findFaces(
     const faceFindDesc = {
         user_id: user_id,
         token: token,
-        description: faceFindByDescSubmit.description,
+        query: faceFindByDescSubmit.query,
     }
 
     axios.post(
