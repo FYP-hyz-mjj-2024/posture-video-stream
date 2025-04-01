@@ -79,21 +79,22 @@ export default function Login() {
                                 "user_id",
                                 user_id,
                                 {
-                                    httpOnly: true,
+                                    // httpOnly: "true",
                                     secure: process.env.NODE_ENV === "production",
                                     path: '/',
-                                    maxAge: 60 * 60 * 24 * 7,
+                                    expires: 60 * 60 * 24 * 7,
                                 });
 
                             Cookies.set(
                                 "token",
                                 token,
                                 {
-                                    httpOnly: true,
+                                    // httpOnly: "true",
                                     secure: process.env.NODE_ENV === "production",
                                     path: '/',
-                                    maxAge: 60 * 60 * 24 * 7,
+                                    expires: 60 * 60 * 24 * 7,
                                 });
+                            router.push("/");
                         },
                         onFailCallback: (e) => {
                             const msg = _getErrorMessage(e);

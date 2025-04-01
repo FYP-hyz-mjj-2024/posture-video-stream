@@ -6,7 +6,7 @@ import axios from 'axios';
 import { IoMdArrowBack } from "react-icons/io";
 
 // Local
-import { guardPage } from '@/lib/auth';
+import { _getUserAuth, guardPage } from '@/lib/auth';
 import { NavigationButton, Button } from '@/components/buttons';
 import { UserItem } from '@/components/ListItem';
 import { SearchBar } from '@/components/Inputs';
@@ -61,8 +61,7 @@ export default function ManageUsers() {
      * Retrieve faces.
      */
     useEffect(() => {
-        const user_id = localStorage.getItem("user_id");
-        const token = localStorage.getItem("token");
+        const { user_id, token } = _getUserAuth();
         const range_from = curPage * pageMaxNum;
         const range_to = range_from + pageMaxNum - 1;
 

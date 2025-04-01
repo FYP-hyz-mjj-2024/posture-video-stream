@@ -8,6 +8,7 @@ import {
   CategoryScale, LinearScale, PointElement, LineElement,
   Title, Tooltip, Legend
 } from 'chart.js';
+import Cookies from "js-cookie";
 
 // Local UI Components
 import { NavigationButton } from '@/components/buttons';
@@ -16,7 +17,7 @@ import Indicator from "@/components/Indicator";
 // Local Data Components
 import codes from "@/data/WSCode";
 import { WS_URL } from "@/utils/pathMap";
-import { getUser, logOut, permissions } from "@/lib/auth";
+import { _getUserAuth, getUser, logOut, permissions } from "@/lib/auth";
 import { _getErrorMessage, compareFace } from '@/lib/server';
 import { useDebounce } from "@/lib/utils"
 
@@ -88,8 +89,8 @@ export default function Home() {
    * stop retrieving and use anonymous mode.
    */
   useEffect(() => {
-    let user_id = localStorage.getItem("user_id");
-    let token = localStorage.getItem("token");
+    const { user_id, token } = _getUserAuth();
+
     if (!user_id || !token) {
       return;
     }

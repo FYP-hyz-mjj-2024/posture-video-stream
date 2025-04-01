@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import axios from "axios";
+import Cookies from "js-cookie";
+
 import { useDebounce } from "@/lib/utils";
 import moment from "moment";
 import { IoMdTrash } from "react-icons/io";
@@ -222,7 +224,7 @@ export const UserItem = (props: { arrId: number, user: UserSuper, users: UserSup
                                 hover:cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 
                                 rounded-lg px-1 py-1 transition-all`}
                             onClick={() => {
-                                const thisUserId = localStorage.getItem("user_id");
+                                const thisUserId = Cookies.get("user_id");
                                 if (thisUserId == user.user_id &&
                                     !window.confirm(
                                         "Are you sure you want to revoke this permission for yourself? This operation is very dangerous and can't be revoked."

@@ -57,6 +57,7 @@ export async function login(userLoginSubmit: UserLoginSubmit, callbacks: Request
     ).then((response: AxiosResponse<UserLoginResponse>) => {
         callbacks.onSuccessCallback(response);
     }).catch((e) => {
+        console.log(e);
         callbacks.onFailCallback(e);
     })
 }
@@ -83,6 +84,7 @@ export async function getUser(userAuth: UserAuth) {
         const response = await axios.post(
             `${process.env.NEXT_PUBLIC_DB_DOMAIN}/user/get_user/`,
             userAuth,
+            { withCredentials: true }
         );
         return response.data;
     } catch (e) {
@@ -101,8 +103,7 @@ export async function getUser(userAuth: UserAuth) {
  * @returns 
  */
 export async function guardPage(router: NextRouter) {
-    const user_id = localStorage.getItem("user_id");
-    const token = localStorage.getItem("token");
+    const { user_id, token } = _getUserAuth();
 
     if (!user_id || !token) {
         router.push("/");

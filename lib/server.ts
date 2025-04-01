@@ -1,5 +1,9 @@
+// Site packages
 import axios, { AxiosError, AxiosResponse } from "axios";
+
+// Locals
 import { _compressImage, _dataURLtoFile, _fileToBase64 } from "./files";
+import { _getUserAuth } from "./auth";
 
 
 /**
@@ -16,8 +20,7 @@ export async function verifyEmailSuper(
         onFailCallback: (e: any) => void
     }
 ) {
-    const user_id = localStorage.getItem("user_id");
-    const token = localStorage.getItem("token");
+    const { user_id, token } = _getUserAuth();
 
     if (!user_id || !token) {
         callbacks.onAuthFailCallback({
@@ -61,8 +64,7 @@ export async function editPermission(
         onSuccessCallback: (response: AxiosResponse<FaceCompareResults>) => void,
         onFailCallback: (e: any) => void
     }) {
-    const operator_user_id = localStorage.getItem("user_id");
-    const token = localStorage.getItem("token");
+    const { user_id: operator_user_id, token } = _getUserAuth();
 
     if (!operator_user_id || !token) {
         callbacks.onAuthFailCallback({
@@ -106,8 +108,8 @@ export async function findUsers(
         onFailCallback: (e: any) => void
     }
 ) {
-    const user_id = localStorage.getItem("user_id");
-    const token = localStorage.getItem("token");
+
+    const { user_id, token } = _getUserAuth();
 
     if (!user_id || !token) {
         callbacks.onAuthFailCallback({
@@ -148,8 +150,8 @@ export async function compareFace(
         onFailCallback: (e: any) => void
     }
 ) {
-    const user_id = localStorage.getItem("user_id");
-    const token = localStorage.getItem("token");
+
+    const { user_id, token } = _getUserAuth();
 
     if (!user_id || !token) {
         callbacks.onAuthFailCallback({
@@ -217,8 +219,7 @@ export async function uploadFace(
         onFailCallback: (e: any) => void
     }
 ) {
-    const user_id = localStorage.getItem("user_id");
-    const token = localStorage.getItem("token");
+    const { user_id, token } = _getUserAuth();
 
     if (!user_id || !token) {
         callbacks.onAuthFailCallback({
@@ -285,8 +286,7 @@ export async function updateFace(
         onFailCallback: (e: any) => void
     }
 ) {
-    const user_id = localStorage.getItem("user_id");
-    const token = localStorage.getItem("token");
+    const { user_id, token } = _getUserAuth();
 
     if (!user_id || !token) {
         callbacks.onAuthFailCallback({
@@ -326,8 +326,7 @@ export async function deleteFace(
         onFailCallback: (e: any) => void
     }
 ) {
-    const user_id = localStorage.getItem("user_id");
-    const token = localStorage.getItem("token");
+    const { user_id, token } = _getUserAuth();
 
     if (!user_id || !token) {
         callbacks.onAuthFailCallback({
@@ -366,8 +365,7 @@ export async function findFaces(
         onFailCallback: (e: any) => void
     }
 ) {
-    const user_id = localStorage.getItem("user_id");
-    const token = localStorage.getItem("token");
+    const { user_id, token } = _getUserAuth();
 
     if (!user_id || !token) {
         callbacks.onAuthFailCallback({
