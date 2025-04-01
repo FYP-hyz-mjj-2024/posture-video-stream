@@ -1,4 +1,5 @@
-import axios from "axios"
+import axios, { AxiosResponse } from "axios"
+import Cookies from "js-cookie";
 import { NextRouter } from "next/router";
 
 export const permissions = {
@@ -25,12 +26,50 @@ export const permissionNames = {
 };
 
 /**
+ * Get user authorization information.
+ * @returns 
+ */
+export function _getUserAuth() {
+    const user_id = Cookies.get("user_id");
+    const token = Cookies.get("token");
+    return {
+        user_id: user_id ? user_id : null,
+        token: token ? token : null,
+    };
+}
+
+/**
+ * User Login.
+ * @param userLoginSubmit 
+ */
+export async function login(userLoginSubmit: UserLoginSubmit, callbacks: RequestCallbacks<UserLoginResponse>) {
+
+    let { email_or_name, password } = userLoginSubmit;
+
+    let userLogin: UserLoginWithEmail | UserLoginWithName = {
+        password: password,
+        ...(email_or_name.indexOf('@') != -1) ? { email: email_or_name } : { name: email_or_name }
+    }
+
+    axios.post(
+        `${process.env.NEXT_PUBLIC_DB_DOMAIN}/user/login/`,
+        userLogin,
+    ).then((response: AxiosResponse<UserLoginResponse>) => {
+        callbacks.onSuccessCallback(response);
+    }).catch((e) => {
+        callbacks.onFailCallback(e);
+    })
+}
+
+/**
  * User Log out.
  * @param router NextRouter object.
  */
 export async function logOut(router: NextRouter) {
-    localStorage.removeItem("user_id");
-    localStorage.removeItem("token");
+    // localStorage.removeItem("user_id");
+    // localStorage.removeItem("token");
+    Cookies.remove("user_id");
+    Cookies.remove("token");
     router.reload();
 }
 

@@ -3,9 +3,12 @@
 import React, { useEffect, useState } from 'react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { useRouter } from "next/router";
-import axios from 'axios';
-import { NavigationButton } from '@/components/buttons';
-import { IoAdd } from 'react-icons/io5';
+import axios, { AxiosResponse } from 'axios';
+// import { cookies } from 'next/headers';
+import Cookies from "js-cookie";
+
+import { login } from "@/lib/auth";
+import { _getErrorMessage } from '@/lib/server';
 
 // type UserLoginWithEmail = {
 //     email: string,
@@ -40,8 +43,6 @@ export default function Login() {
             ...(email_or_name.indexOf('@') != -1) ? { email: email_or_name } : { name: email_or_name }
         }
 
-        setPageError(null);
-
         axios.post(
             `${process.env.NEXT_PUBLIC_DB_DOMAIN}/user/login/`,
             userLogin,
@@ -65,7 +66,41 @@ export default function Login() {
                     {pageError ? (<p className={errorStyle}>{pageError}</p>) : (<p className={errorStyle}></p>)}
                 </div>
 
-                <form onSubmit={handleSubmit(submit)}>
+                <form onSubmit={handleSubmit((data) => {
+                    setPageError(null);
+                    login(data, {
+                        onAuthFailCallback: (e) => { },
+                        onSuccessCallback: (response: AxiosResponse<UserLoginResponse>) => {
+                            const user_id = response.data.user_id;
+                            const token = response.data.access_token;
+                            const token_type = response.data.token_type;
+
+                            Cookies.set(
+                                "user_id",
+                                user_id,
+                                {
+                                    httpOnly: true,
+                                    secure: process.env.NODE_ENV === "production",
+                                    path: '/',
+                                    maxAge: 60 * 60 * 24 * 7,
+                                });
+
+                            Cookies.set(
+                                "token",
+                                token,
+                                {
+                                    httpOnly: true,
+                                    secure: process.env.NODE_ENV === "production",
+                                    path: '/',
+                                    maxAge: 60 * 60 * 24 * 7,
+                                });
+                        },
+                        onFailCallback: (e) => {
+                            const msg = _getErrorMessage(e);
+                            setPageError(msg);
+                        }
+                    });
+                })}>
                     <div className={`flex flex-col gap-3`}>
                         {/** Email or Name Field */}
                         <div className={`flex flex-col gap-1`}>

@@ -161,6 +161,13 @@ type UserLoginSubmit = {
     password: string,
 };
 
+type UserLoginResponse = {
+    msg: string,
+    user_id: string,
+    access_token: string,
+    token_type: string
+}
+
 /** 
  * @abstract Register User 
  */
