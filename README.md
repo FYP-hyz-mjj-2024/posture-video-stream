@@ -1,18 +1,35 @@
-### Start WebSocket Server
-`node public/ws-server.js`
+# Smart Device Usage Detection - Frontend
+> Alias: **You Focus Your Walk**
 
-### Start Next Server
-`npm run dev`
+## Personnel
+- **Group Members:** [Huang Yanzhen](https://github.com/YanzhenHuang), [Mai Jiajun](https://github.com/SpinningMai)
+- **Supervisor:** Prof. Bob Zhang
 
-# Build with Docker
-## 1. Build Docker Mirror
+<img src="https://s2.loli.net/2025/04/15/lPhs8WeTK6uLFMI.png" >
+
+This is the frontend of the project `Smart Device Usage Detection`, i.e. `YOU FOCUS YOUR WALK`. This repository contains the NextJS + React webpage with a simple [Node server](public/ws-server.js) for WebSocket communication.
+
+# Build
+
+## Build with `npm`
+To build with `npm`, make sure you have [Node Environment](https://nodejs.org/en) installed. Make sure to add `npm` script to your environment variable (windows, zsh, bash, etc.). 
+
+1. Run `npm i` to install `node_modules` dependencies.
+2. Run `npm run build` to build the project.
+3. Run `npm run start` to start the project. The `nodejs` WebSocket server is automatically started using [Concurrently](https://www.npmjs.com/package/concurrently), a terminal concurrent ccommand tool.
+    - Alternatively, you can run `node public/ws-server.js` to only start the WebSocket server.
+
+## Build with Docker
+If you are interested to deploy this to a server, you can also build this project with docker.
+
+### 1. Build Docker Mirror
 ```shell
 docker build -t smart-device-usage-detection .
 ```
 - `-t smart-device-usage-detection`: Name the Docker image as `smart-device-usage-detection`.
 - `.`: Build context is current directory, which contains `Dockerfile` and all codes.
 
-## 2. Run the docker container
+### 2. Run the docker container
 ```shell
 docker run -p 3000:3000 -p 8976:8976 smart-device-usage-detection
 ```
@@ -23,8 +40,8 @@ After running this command, the container will run:
 - the next app at `http://localhost:3000`, and 
 - the websocket at `ws://localhost:8976`.
 
-## 3. Access and Test the Miror
-### 3.1 Find running containers
+### 3. Access and Test the Miror
+#### 3.1 Find running containers
 ```shell
 docker ps
 ```
@@ -35,13 +52,13 @@ d4238047209a   smart-device-usage-detection   "docker-entrypoint.s…"    3 minu
 ```
 You will be mainly using the `CONTAINER ID`.
 
-### 3.2 Stop a container
+#### 3.2 Stop a container
 Using the `CONTAINER ID` get from `docker ps`, run
 ```shell
 docker stop <CONTAINER_ID>
 ```
 
-### 3.3 Remove a container
+#### 3.3 Remove a container
 Using the `CONTAINER ID` get from `docker ps`, run
 ```shell
 docker rm <CONTGAINER_ID>
