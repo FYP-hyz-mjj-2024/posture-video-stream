@@ -1,4 +1,4 @@
-# Smart Device Usage Detection - Frontend
+# Pedestrian Cell Phone Usage Detection - Frontend
 > Alias: **You Focus Your Walk**
 
 ## Personnel
