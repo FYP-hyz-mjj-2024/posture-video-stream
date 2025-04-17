@@ -134,6 +134,54 @@ export async function findUsers(
     });
 }
 
+/**
+ * Retrieve faces given a range.
+ * @param facesGetSubmit User auth and face range.
+ * @returns If success, return a list of faces. Otherwise return null.
+ */
+export async function getFaces(
+    facesGetSubmit: FacesGetSubmit,
+    callbacks: {
+        onAuthFailCallback: (e: any) => void,
+        onSuccessCallback: (response: AxiosResponse<FacesGetResult>) => void,
+        onFailCallback: (e: any) => void
+    }
+) {
+
+    const { user_id, token } = _getUserAuth();
+
+    if (!user_id || !token) {
+        callbacks.onAuthFailCallback({
+            localMessage: "Your login info is expired. Please re-login."
+        });
+        return null;
+    }
+
+    const facesGet: FacesGet = {
+        user_id: user_id,
+        ...facesGetSubmit
+    }
+
+    await axios.post(
+        `${process.env.NEXT_PUBLIC_DB_DOMAIN}/face/get_faces/`,
+        facesGet,
+        {
+            headers: {
+                "Authorization": `Bearer ${token}`,
+            }
+        }
+    ).then((response) => {
+        if (!response) {
+            callbacks.onFailCallback("Response is empty.");
+            return null;
+        }
+        callbacks.onSuccessCallback(response);
+    }).catch((e: AxiosError) => {
+        callbacks.onFailCallback(e);
+    });
+
+    // return response.data;
+}
 
 
 /**
@@ -185,14 +233,18 @@ export async function compareFace(
 
     const faceCompare: FaceCompare = {
         user_id: user_id,
-        token: token,
-        blob: blob,
+        blob: blob
     };
 
     // Upload.
     axios.post(
         `${process.env.NEXT_PUBLIC_DB_DOMAIN}/face/compare_face/`,
-        faceCompare
+        faceCompare,
+        {
+            headers: {
+                "Authorization": `Bearer ${token}`,
+            }
+        }
     ).then((response) => {
         if (!response) {
             return;
@@ -253,7 +305,6 @@ export async function uploadFace(
 
     const faceUpload: FaceUpload = {
         user_id: user_id,
-        token: token,
         blob: blob,
         description: faceUploadSubmit.description
     };
@@ -261,7 +312,12 @@ export async function uploadFace(
     // Upload.
     axios.post(
         `${process.env.NEXT_PUBLIC_DB_DOMAIN}/face/upload_face/`,
-        faceUpload
+        faceUpload,
+        {
+            headers: {
+                "Authorization": `Bearer ${token}`,
+            }
+        }
     ).then((response) => {
         if (!response) {
             return;
@@ -297,14 +353,18 @@ export async function updateFace(
 
     const faceUpdate: FaceUpdate = {
         user_id: user_id,
-        token: token,
         face_id: faceUpdateSubmit.face_id,
         description: faceUpdateSubmit.description
     };
 
     axios.post(
         `${process.env.NEXT_PUBLIC_DB_DOMAIN}/face/update_face/`,
-        faceUpdate
+        faceUpdate,
+        {
+            headers: {
+                "Authorization": `Bearer ${token}`,
+            }
+        }
     ).then((response) => {
         callbacks.onSuccessCallback(response);
     }).catch((e) => {
@@ -335,15 +395,20 @@ export async function deleteFace(
         return;
     }
 
-    const faceDelete = {
+    const faceDelete: FaceDelete = {
         user_id: user_id,
-        token: token,
+        // token: token,
         face_id: face_id
     };
 
     axios.post(
         `${process.env.NEXT_PUBLIC_DB_DOMAIN}/face/delete_face/`,
-        faceDelete
+        faceDelete,
+        {
+            headers: {
+                "Authorization": `Bearer ${token}`,
+            }
+        }
     ).then((response) => {
         callbacks.onSuccessCallback(response);
     }).catch((e) => {
@@ -376,13 +441,17 @@ export async function findFaces(
 
     const faceFindDesc = {
         user_id: user_id,
-        token: token,
         query: faceFindByDescSubmit.query,
     }
 
     axios.post(
         `${process.env.NEXT_PUBLIC_DB_DOMAIN}/face/find_faces/`,
-        faceFindDesc
+        faceFindDesc,
+        {
+            headers: {
+                "Authorization": `Bearer ${token}`,
+            }
+        }
     ).then((response) => {
         callbacks.onSuccessCallback(response);
     }).catch((e) => {
