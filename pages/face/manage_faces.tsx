@@ -11,7 +11,7 @@ import { NavigationButton, Button } from '@/components/buttons';
 import { FaceItem } from '@/components/ListItem';
 import { SearchBar } from '@/components/Inputs';
 import { useDebounce } from '@/lib/utils';
-import { findFaces } from '@/lib/server';
+import { _getErrorMessage, findFaces, getFaces } from '@/lib/server';
 import { checkFileTypeFromBase64 } from '@/lib/files';
 
 
@@ -31,24 +31,6 @@ export default function ManageFaces() {
     const pageMaxNum = 5;
 
     /**
-     * Retrieve faces given a range.
-     * @param facesGet User auth and face range.
-     * @returns If success, return a list of faces. Otherwise return null.
-     */
-    async function getFaces(facesGet: FacesGet): Promise<FacesGetResult | null> {
-        try {
-            const response = await axios.post(
-                `${process.env.NEXT_PUBLIC_DB_DOMAIN}/face/get_faces/`,
-                facesGet,
-            );
-            return response.data;
-        } catch (e) {
-
-            return null;
-        }
-    }
-
-    /**
      * Protected page. Need user authorize.
      */
     useEffect(() => {
@@ -64,27 +46,29 @@ export default function ManageFaces() {
      * Retrieve faces.
      */
     useEffect(() => {
-        const { user_id, token } = _getUserAuth();
         const range_from = curPage * pageMaxNum;
         const range_to = range_from + pageMaxNum - 1;
 
-        if (!user_id || !token) {
-            return;
-        }
-
         getFaces({
-            user_id: user_id,
-            token: token,
             range_from: range_from,
             range_to: range_to
-        }).then((data) => {
-            if (data) {
+        }, {
+            onAuthFailCallback: (e) => {
+                const message = _getErrorMessage(e);
+                window.alert(message);
+                router.push("/");
+            },
+            onSuccessCallback: (response) => {
+                const data: FacesGetResult = response.data;
                 setNumTotal(data.num_total);
                 setNumThisPage(data.num_this_page);
                 setFaces(data.faces);
+            },
+            onFailCallback: (e) => {
+                const message = _getErrorMessage(e);
+                window.alert(message);
             }
         })
-
     }, [curPage]);
 
 

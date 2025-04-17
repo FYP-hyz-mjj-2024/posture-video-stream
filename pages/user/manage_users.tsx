@@ -10,7 +10,7 @@ import { _getUserAuth, guardPage } from '@/lib/auth';
 import { NavigationButton, Button } from '@/components/buttons';
 import { UserItem } from '@/components/ListItem';
 import { SearchBar } from '@/components/Inputs';
-import { findUsers } from '@/lib/server';
+import { getUsers, findUsers, _getErrorMessage } from '@/lib/server';
 import { useDebounce } from '@/lib/utils';
 
 const buttonStyle = `border rounded-md text-center hover:cursor-pointer select-none`;
@@ -28,22 +28,6 @@ export default function ManageUsers() {
     const [curPage, setCurPage] = useState<number>(0);
     const pageMaxNum = 5;
 
-    /**
-     * Retrieve faces given a range.
-     * @param usersGet User auth and face range.
-     * @returns If success, return a list of faces. Otherwise return null.
-     */
-    async function getUsers(usersGet: UsersGet): Promise<UsersGetResult | null> {
-        try {
-            const response = await axios.post(
-                `${process.env.NEXT_PUBLIC_DB_DOMAIN}/user/get_users/`,
-                usersGet,
-            );
-            return response.data;
-        } catch (e) {
-            return null;
-        }
-    }
 
     /**
      * Protected page. Need user authorize.
@@ -61,27 +45,28 @@ export default function ManageUsers() {
      * Retrieve faces.
      */
     useEffect(() => {
-        const { user_id, token } = _getUserAuth();
         const range_from = curPage * pageMaxNum;
         const range_to = range_from + pageMaxNum - 1;
-
-        if (!user_id || !token) {
-            return;
-        }
-
         getUsers({
-            user_id: user_id,
-            token: token,
             range_from: range_from,
             range_to: range_to
-        }).then((data) => {
-            if (data) {
+        }, {
+            onAuthFailCallback: (e) => {
+                const message = _getErrorMessage(e);
+                window.alert(message);
+                router.push("/");
+            },
+            onSuccessCallback: (response) => {
+                const data: UsersGetResult = response.data;
                 setNumTotal(data.num_total);
                 setNumThisPage(data.num_this_page);
                 setUsers(data.users);
+            },
+            onFailCallback: (e) => {
+                const message = _getErrorMessage(e);
+                window.alert(message);
             }
-        })
-
+        });
     }, [curPage]);
 
 

@@ -89,14 +89,21 @@ export default function Home() {
    * stop retrieving and use anonymous mode.
    */
   useEffect(() => {
-    const { user_id, token } = _getUserAuth();
-
-    if (!user_id || !token) {
-      return;
-    }
-    getUser({ user_id, token }).then((data) => {
-      if (data) setUserData(data);
-    });
+    getUser({
+      onAuthFailCallback: (e) => {
+        const message = _getErrorMessage(e);
+        window.alert(message);
+        router.push("/");
+      },
+      onSuccessCallback: (response) => {
+        const data: UserBasic = response.data;
+        setUserData(data);
+      },
+      onFailCallback: (e) => {
+        const message = _getErrorMessage(e);
+        window.alert(message);
+      }
+    })
   }, [])
 
   /**

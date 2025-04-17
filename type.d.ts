@@ -93,10 +93,12 @@ type UserSuper = UserBasic & {
     is_verified: boolean,
 };
 
-type UsersGet = UserAuth & {
+type UsersGetSubmit = {
     range_from: number,
     range_to: number,
-};
+}
+
+type UsersGet = WithUserId & UsersGetSubmit;
 
 interface UsersGetResult {
     num_total: number,
@@ -108,11 +110,9 @@ type EmailVerifySuper = UserAuth & {
     verify_user_id: string,
 };
 
-type PermissionEdit = {
+type PermissionEdit = WithUserId & {
     grant: boolean,
-    operator_user_id: string,
     requester_user_id: string,
-    token: string,
     permission: number
 };
 
@@ -120,7 +120,7 @@ type UsersFindByNameSubmit = {
     query: string,
 };
 
-type UsersFindByName = UserAuth & UsersFindByNameSubmit;
+type UsersFindByName = WithUserId & UsersFindByNameSubmit;
 
 type UsersFindResult = {
     users: UserSuper[],
@@ -202,6 +202,9 @@ type UserAuth = {
     token: string;
 };
 
+type WithUserId = {
+    user_id: string;
+}
 
 // type UsersGet
 
@@ -232,10 +235,12 @@ interface Face {
  * Doesn't work if the list is shorter than this index.
  * In this case, the entire list will be returned.
  */
-type FacesGet = UserAuth & {
+type FacesGetSubmit = {
     range_from: number,
     range_to: number,
-};
+}
+
+type FacesGet = WithUserId & FacesGetSubmit;
 
 /**
  * Response of faces retrieval.
@@ -262,7 +267,7 @@ type FaceUploadSubmit = {
 /**
  * Face upload request body.
  */
-type FaceUpload = UserAuth & FaceUploadSubmit;
+type FaceUpload = WithUserId & FaceUploadSubmit;
 
 
 /**
@@ -277,7 +282,7 @@ type FaceCompareSubmit = {
 /**
  * Face compare request body.
  */
-type FaceCompare = UserAuth & FaceCompareSubmit;
+type FaceCompare = WithUserId & FaceCompareSubmit;
 
 /**
  * Single response body of the face compare request.
@@ -312,13 +317,13 @@ type FaceUpdateSubmit = {
 /**
  * Face update request body.
  */
-type FaceUpdate = UserAuth & FaceUpdateSubmit;
+type FaceUpdate = WithUserId & FaceUpdateSubmit;
 
 /**
  * Face delete request body.
  * @param face_id UUID of the face to delete.
  */
-type FaceDelete = UserAuth & {
+type FaceDelete = WithUserId & {
     face_id: string,
 };
 
@@ -330,7 +335,7 @@ type FacesFindByDescSubmit = {
     query: string,
 }
 
-type FacesFindByDesc = UserAuth & FacesFindByDescSubmit;
+type FacesFindByDesc = WithUserId & FacesFindByDescSubmit;
 
 type FacesFindResult = {
     faces: Face[],
