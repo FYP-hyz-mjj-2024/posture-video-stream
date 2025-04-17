@@ -16,7 +16,7 @@ export async function verifyEmailSuper(
     verifyUserId: string,
     callbacks: {
         onAuthFailCallback: (e: any) => void,
-        onSuccessCallback: (response: AxiosResponse<FaceCompareResults>) => void,
+        onSuccessCallback: (response: AxiosResponse<any>) => void,
         onFailCallback: (e: any) => void
     }
 ) {
@@ -49,6 +49,55 @@ export async function verifyEmailSuper(
 };
 
 
+
+/**
+ * Retrieve users given a range.
+ * @param usersGetSubmit The from-to index.
+ * @returns If success, return a list of faces. Otherwise return null.
+ */
+export async function getUsers(
+    usersGetSubmit: UsersGetSubmit,
+    callbacks: {
+        onAuthFailCallback: (e: any) => void,
+        onSuccessCallback: (response: AxiosResponse<UsersGetResult>) => void,
+        onFailCallback: (e: any) => void
+    }
+) {
+    const { user_id, token } = _getUserAuth();
+
+    if (!user_id || !token) {
+        callbacks.onAuthFailCallback({
+            localMessage: "Your login info is expired. Please re-login."
+        });
+        return null;
+    }
+
+    const usersGet: UsersGet = {
+        user_id: user_id,
+        ...usersGetSubmit
+    }
+
+    await axios.post(
+        `${process.env.NEXT_PUBLIC_DB_DOMAIN}/user/get_users/`,
+        usersGet,
+        {
+            headers: {
+                "Authorization": `Bearer ${token}`,
+            }
+        }
+    ).then((response) => {
+        if (!response) {
+            callbacks.onFailCallback("Response is empty.");
+            return null;
+        }
+        callbacks.onSuccessCallback(response);
+    }).catch((e: AxiosError) => {
+        callbacks.onFailCallback(e);
+    });
+
+}
+
+
 /**
  * Superuser function: Grant or revoke permission to non-super users. One at a time.
  * @param requester_user_id 
@@ -61,7 +110,7 @@ export async function editPermission(
     grant: boolean,
     callbacks: {
         onAuthFailCallback: (e: any) => void,
-        onSuccessCallback: (response: AxiosResponse<FaceCompareResults>) => void,
+        onSuccessCallback: (response: AxiosResponse<any>) => void,
         onFailCallback: (e: any) => void
     }) {
     const { user_id: operator_user_id, token } = _getUserAuth();
@@ -74,16 +123,19 @@ export async function editPermission(
     }
 
     const permissionEdit: PermissionEdit = {
+        user_id: operator_user_id,
         grant: grant,
         requester_user_id: requester_user_id,
-        operator_user_id: operator_user_id,
-        token: token,
         permission: permission,
     };
 
     axios.post(
         `${process.env.NEXT_PUBLIC_DB_DOMAIN}/user/edit_permission/`,
-        permissionEdit
+        permissionEdit, {
+        headers: {
+            "Authorization": `Bearer ${token}`
+        }
+    }
     ).then((response) => {
         if (!response) return;
         callbacks.onSuccessCallback(response);
@@ -118,15 +170,19 @@ export async function findUsers(
         return;
     }
 
-    const usersFindByName = {
+    const usersFindByName: UsersFindByName = {
         user_id: user_id,
-        token: token,
         query: faceFindByDescSubmit.query,
     }
 
     axios.post(
         `${process.env.NEXT_PUBLIC_DB_DOMAIN}/user/find_users/`,
-        usersFindByName
+        usersFindByName,
+        {
+            headers: {
+                "Authorization": `Bearer ${token}`,
+            }
+        }
     ).then((response) => {
         callbacks.onSuccessCallback(response);
     }).catch((e) => {

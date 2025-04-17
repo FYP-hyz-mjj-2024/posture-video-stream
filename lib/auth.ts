@@ -1,6 +1,8 @@
-import axios, { AxiosResponse } from "axios"
+import axios, { AxiosResponse, AxiosError } from "axios"
 import Cookies from "js-cookie";
 import { NextRouter } from "next/router";
+
+import { _getErrorMessage } from "./server";
 
 export const permissions = {
     // NO_PERMISSIONS: 0,
@@ -79,22 +81,43 @@ export async function logOut(router: NextRouter) {
  * @param userAuth User authentication details.
  * @returns 
  */
-export async function getUser(userAuth: UserAuth) {
-    try {
-        const response = await axios.post(
-            `${process.env.NEXT_PUBLIC_DB_DOMAIN}/user/get_user/`,
-            userAuth,
-            { withCredentials: true }
-        );
-        return response.data;
-    } catch (e) {
-        /**
-         * Possible errors:
-         * 1. Bad token: Expired or invalid;
-         * 2. Server stopped.
-         */
+export async function getUser(
+    callbacks: {
+        onAuthFailCallback: (e: any) => void,
+        onSuccessCallback: (response: AxiosResponse<UserBasic>) => void,
+        onFailCallback: (e: any) => void
+    }
+) {
+    const { user_id, token } = _getUserAuth();
+
+    if (!user_id || !token) {
+        callbacks.onAuthFailCallback({
+            localMessage: "Your login info is expired. Please re-login."
+        });
         return null;
     }
+
+    const userAuth: WithUserId = {
+        user_id: user_id,
+    }
+
+    await axios.post(
+        `${process.env.NEXT_PUBLIC_DB_DOMAIN}/user/get_user/`,
+        userAuth,
+        {
+            headers: {
+                "Authorization": `Bearer ${token}`,
+            }
+        }
+    ).then((response) => {
+        if (!response) {
+            callbacks.onFailCallback("Response is empty.");
+            return null;
+        }
+        callbacks.onSuccessCallback(response);
+    }).catch((e: AxiosError) => {
+        callbacks.onFailCallback(e);
+    });
 }
 
 /**
@@ -110,12 +133,20 @@ export async function guardPage(router: NextRouter) {
         return null;
     }
 
-    getUser({ user_id, token }).then((data) => {
-        if (!data) {
+    getUser({
+        onAuthFailCallback: (e) => {
+            const message = _getErrorMessage(e);
+            window.alert(message);
             router.push("/");
-            return;
+        },
+        onSuccessCallback: (response) => {
+            const data: UserBasic = response.data;
+            localStorage.setItem("user_data", JSON.stringify(data));
+        },
+        onFailCallback: (e) => {
+            const message = _getErrorMessage(e);
+            window.alert(message);
         }
-        localStorage.setItem("user_data", JSON.stringify(data));
-    });
+    })
 
 }

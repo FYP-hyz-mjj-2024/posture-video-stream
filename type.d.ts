@@ -93,10 +93,12 @@ type UserSuper = UserBasic & {
     is_verified: boolean,
 };
 
-type UsersGet = UserAuth & {
+type UsersGetSubmit = {
     range_from: number,
     range_to: number,
-};
+}
+
+type UsersGet = WithUserId & UsersGetSubmit;
 
 interface UsersGetResult {
     num_total: number,
@@ -108,11 +110,9 @@ type EmailVerifySuper = UserAuth & {
     verify_user_id: string,
 };
 
-type PermissionEdit = {
+type PermissionEdit = WithUserId & {
     grant: boolean,
-    operator_user_id: string,
     requester_user_id: string,
-    token: string,
     permission: number
 };
 
@@ -120,7 +120,7 @@ type UsersFindByNameSubmit = {
     query: string,
 };
 
-type UsersFindByName = UserAuth & UsersFindByNameSubmit;
+type UsersFindByName = WithUserId & UsersFindByNameSubmit;
 
 type UsersFindResult = {
     users: UserSuper[],
