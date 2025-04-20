@@ -108,8 +108,6 @@ export async function logOut(router: NextRouter) {
     router.reload();
 }
 
-
-
 /**
  * Guard a protected page.
  * @param router NextRouter object.
