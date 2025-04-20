@@ -58,7 +58,11 @@ export function serverFuncFactory<FormSubmitType, ResponseType>(
 
         // Pre-process form submit.
         if (asyncPreProcess) {
-            formSubmit = await asyncPreProcess(formSubmit);
+            try {
+                formSubmit = await asyncPreProcess(formSubmit);
+            } catch (e) {
+                callbacks.onFail(e);
+            }
         }
 
         // Prepare request.
@@ -132,6 +136,7 @@ export async function compressFormSubmit(submit: { blob: string } & any): Promis
         blob = await _compressImage(submit.blob, options);
         submit.blob = blob;
     } catch (e) {
+        // Doesn't care about details. Just tell user the compress failed.
         throw new Error("An error occurred during compression for upload face.");
     }
 
