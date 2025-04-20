@@ -1,6 +1,8 @@
 // Site Packages
 import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from "next/router";
+
+// Site UI Components
 import { IoGrid, IoPeople } from 'react-icons/io5';
 import { Line } from 'react-chartjs-2';
 import {
@@ -8,7 +10,6 @@ import {
   CategoryScale, LinearScale, PointElement, LineElement,
   Title, Tooltip, Legend
 } from 'chart.js';
-import Cookies from "js-cookie";
 
 // Local UI Components
 import { NavigationButton } from '@/components/buttons';
@@ -17,10 +18,11 @@ import Indicator from "@/components/Indicator";
 // Local Data Components
 import codes from "@/data/WSCode";
 import { WS_URL } from "@/utils/pathMap";
-import { _getUserAuth, getUser, logOut, permissions } from "@/lib/auth";
-import { _getErrorMessage, compareFace } from '@/lib/server';
+import { _getUserAuth, logOut, permissions } from "@/lib/auth";
+import { getErrorMessage, compareFace, getUser } from '@/lib/server';
 import { useDebounce } from "@/lib/utils"
 
+// Latency chart.
 ChartJS.register(
   CategoryScale, LinearScale, PointElement, LineElement,
   Title, Tooltip, Legend
@@ -84,23 +86,21 @@ export default function Home() {
   });
 
   /**
-   * Retrieve user data using token & id stored in local storage.
+   * Retrieve user data using token & id stored in cookies.
    * If there's no token or id, user had never logged in, therefore
    * stop retrieving and use anonymous mode.
    */
   useEffect(() => {
-    getUser({
-      onAuthFailCallback: (e) => {
-        const message = _getErrorMessage(e);
-        window.alert(message);
+    getUser({}, {
+      onAuthFail: (e) => {
         router.push("/");
       },
-      onSuccessCallback: (response) => {
+      onSuccess: (response) => {
         const data: UserBasic = response.data;
         setUserData(data);
       },
-      onFailCallback: (e) => {
-        const message = _getErrorMessage(e);
+      onFail: (e) => {
+        const message = getErrorMessage(e);
         window.alert(message);
       }
     })
@@ -309,18 +309,18 @@ export default function Home() {
                         d_compareFace(
                           { blob: `data:image/jpeg;base64,${v}` } as FaceCompareSubmit,
                           {
-                            onAuthFailCallback: (e) => {
-                              const message = _getErrorMessage(e);
+                            onAuthFail: (e) => {
+                              const message = getErrorMessage(e);
                               window.alert(message);
                               router.push("/");
                             },
-                            onSuccessCallback: (response) => {
+                            onSuccess: (response) => {
                               const _faceCompareResults: FaceCompareResults = response.data;
                               const _selectedName = `${_faceCompareResults.desc_scores[0].description} - ${_faceCompareResults.desc_scores[0].score}`;
                               setSelectedName(_selectedName);
                             },
-                            onFailCallback: (e) => {
-                              const message = _getErrorMessage(e);
+                            onFail: (e) => {
+                              const message = getErrorMessage(e);
                               window.alert(message);
                             },
                           });

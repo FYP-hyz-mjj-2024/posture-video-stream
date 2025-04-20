@@ -1,8 +1,10 @@
-import axios, { AxiosResponse, AxiosError } from "axios"
+// Site packages
+import axios, { AxiosResponse } from "axios"
 import Cookies from "js-cookie";
 import { NextRouter } from "next/router";
 
-import { _getErrorMessage } from "./server";
+// Locals
+import { getErrorMessage, getUser } from "./server";
 
 export const permissions = {
     // NO_PERMISSIONS: 0,
@@ -44,7 +46,10 @@ export function _getUserAuth() {
  * User Login.
  * @param userLoginSubmit 
  */
-export async function login(userLoginSubmit: UserLoginSubmit, callbacks: RequestCallbacks<UserLoginResponse>) {
+export async function login(
+    userLoginSubmit: UserLoginSubmit,
+    callbacks: RequestCallbacks<UserLoginResponse>
+) {
 
     let { email_or_name, password } = userLoginSubmit;
 
@@ -57,10 +62,39 @@ export async function login(userLoginSubmit: UserLoginSubmit, callbacks: Request
         `${process.env.NEXT_PUBLIC_DB_DOMAIN}/user/login/`,
         userLogin,
     ).then((response: AxiosResponse<UserLoginResponse>) => {
-        callbacks.onSuccessCallback(response);
+        callbacks.onSuccess(response);
     }).catch((e) => {
         console.log(e);
-        callbacks.onFailCallback(e);
+        callbacks.onFail(e);
+    })
+}
+
+/**
+ * User Register
+ * @param userRegisterSubmit 
+ * @param callbacks 
+ */
+export async function u_register(
+    userRegisterSubmit: UserRegisterSubmit,
+    callbacks: RequestCallbacks<any>,
+) {
+    let { email, name, password } = userRegisterSubmit;
+
+    axios.post(
+        `${process.env.NEXT_PUBLIC_DB_DOMAIN}/user/register/`,
+        {
+            email: email,
+            name: name,
+            password: password
+        }
+    ).then((response) => {
+        if (!response) {
+            callbacks.onFail({ localMessage: "Response is empty." });
+        }
+        callbacks.onSuccess(response);
+    }).catch((e) => {
+        // setPageError(e.response?.data.detail);
+        callbacks.onFail(e);
     })
 }
 
@@ -69,56 +103,12 @@ export async function login(userLoginSubmit: UserLoginSubmit, callbacks: Request
  * @param router NextRouter object.
  */
 export async function logOut(router: NextRouter) {
-    // localStorage.removeItem("user_id");
-    // localStorage.removeItem("token");
     Cookies.remove("user_id");
     Cookies.remove("token");
     router.reload();
 }
 
-/**
- * Get user data using authentication detials: user_id and token.
- * @param userAuth User authentication details.
- * @returns 
- */
-export async function getUser(
-    callbacks: {
-        onAuthFailCallback: (e: any) => void,
-        onSuccessCallback: (response: AxiosResponse<UserBasic>) => void,
-        onFailCallback: (e: any) => void
-    }
-) {
-    const { user_id, token } = _getUserAuth();
 
-    if (!user_id || !token) {
-        callbacks.onAuthFailCallback({
-            localMessage: "Your login info is expired. Please re-login."
-        });
-        return null;
-    }
-
-    const userAuth: WithUserId = {
-        user_id: user_id,
-    }
-
-    await axios.post(
-        `${process.env.NEXT_PUBLIC_DB_DOMAIN}/user/get_user/`,
-        userAuth,
-        {
-            headers: {
-                "Authorization": `Bearer ${token}`,
-            }
-        }
-    ).then((response) => {
-        if (!response) {
-            callbacks.onFailCallback("Response is empty.");
-            return null;
-        }
-        callbacks.onSuccessCallback(response);
-    }).catch((e: AxiosError) => {
-        callbacks.onFailCallback(e);
-    });
-}
 
 /**
  * Guard a protected page.
@@ -133,18 +123,18 @@ export async function guardPage(router: NextRouter) {
         return null;
     }
 
-    getUser({
-        onAuthFailCallback: (e) => {
-            const message = _getErrorMessage(e);
+    getUser({}, {
+        onAuthFail: (e) => {
+            const message = getErrorMessage(e);
             window.alert(message);
             router.push("/");
         },
-        onSuccessCallback: (response) => {
+        onSuccess: (response) => {
             const data: UserBasic = response.data;
             localStorage.setItem("user_data", JSON.stringify(data));
         },
-        onFailCallback: (e) => {
-            const message = _getErrorMessage(e);
+        onFail: (e) => {
+            const message = getErrorMessage(e);
             window.alert(message);
         }
     })

@@ -3,7 +3,7 @@ import imageCompression, { Options } from 'browser-image-compression';
 export const MAX_SUBMIT_FILE_SIZE = 200 * 1024 * 1024;    // 200 MB
 
 /**
- * Convert a file's binary part into base64.
+ * @description Convert a file's binary part into base64.
  * @param file File object.
  * @param keepHeader Whether to keep the header in the base64 string.
  * Keeping the header will result in a data url. Otherwise this function
@@ -31,13 +31,13 @@ export function _fileToBase64(file: File, keepHeader = false): Promise<string> {
 
 
 /**
- * Construct a File object using data URL. Note that
+ * @description Construct a File object using data URL. Note that
  * a data URL is basically a base64 string with a 
  * header:
  * 
- * data:image/png;base64,ivB......
+ * `data:image/png;base64,ivB......`
  * 
- * where "ivB..." is the base64 part that contains the
+ * where `ivB...` is the base64 part that contains the
  * actual information.
  * @param dataURL Data URL to construct the Blob object.
  * @returns The constructed file using the data url.
@@ -68,7 +68,7 @@ export function _dataURLtoFile(dataURL: string): File {
 
 
 /**
- * Compress a dataURL of an image to a base64 string (headerless) with
+ * @description Compress a dataURL of an image to a base64 string (headerless) with
  * the specified options.
  * @param dataURL The data url of the image. (base64 string with headers)
  * @param options Options to compress the image. 
@@ -88,7 +88,7 @@ export async function _compressImage(dataURL: string, options: Options): Promise
 
 
 /**
- * Check for the magic number to determine file type.
+ * @description Check for the magic number to determine file type.
  * @param blob Blob base64 string.
  * @returns File type.
  */
@@ -103,7 +103,7 @@ export function checkFileTypeFromBase64(blob: string): string {
 }
 
 /**
- * Receiving a fileList from browser, get the target file's base64.
+ * @description Receiving a fileList from browser, get the target file's base64.
  * @param _fileList FileList object. 
  * @returns The base64 encoded binary of the first file in the file list.
  */
@@ -141,7 +141,7 @@ export async function pruneFileList(_fileList: FileList): Promise<string | null>
 }
 
 /**
- * Handle drop to upload file.
+ * @description Handle drop to upload file.
  * @param event HTML div element drag event.
  * @param callback Callback function to work on the promised result.
  * @returns Promise of the blob or null.
@@ -165,7 +165,7 @@ export async function handleFileInputDrop(
 }
 
 /**
- * Handle click to upload file.
+ * @description Handle click to upload file.
  * @param event HTML input element change event. 
  * @param callback Callback function to work on the promised result.
  * @returns Promise of the blob or null.

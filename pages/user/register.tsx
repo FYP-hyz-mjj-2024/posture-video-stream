@@ -1,10 +1,16 @@
 "use client";
-
+// Site packages
 import React, { useState } from 'react';
 import { useRouter } from "next/router"
 import { useForm } from 'react-hook-form';
-import axios from 'axios';
+import Cookies from "js-cookie";
 
+// Locals
+import { useDebounce } from '@/lib/utils';
+import { u_register } from '@/lib/auth';
+import { getErrorMessage } from '@/lib/server';
+
+// Styles
 const inputFieldStyle = `flex flex-row w-84 p-2 rounded-lg border w-64 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600`;
 const errorStyle = `flex flex-row h-2 text-red-400 m-0 pl-1 text-sm`
 
@@ -13,29 +19,7 @@ export default function Register() {
     const { register, handleSubmit, watch, formState: { errors } } = useForm<UserRegisterSubmit>();
     const [pageError, setPageError] = useState<string | null>(null);
 
-    function submit(userRegisterSubmit: UserRegisterSubmit) {
-
-        let { email, name, password } = userRegisterSubmit;
-
-        setPageError(null);
-
-        axios.post(
-            `${process.env.NEXT_PUBLIC_DB_DOMAIN}/user/register/`,
-            {
-                email: email,
-                name: name,
-                password: password
-            }
-        ).then((response) => {
-            let user_id = response.data.user_id;
-            let token = response.data.token;
-            localStorage.setItem("user_id", user_id);
-            localStorage.setItem("token", token);
-            router.push("./login")
-        }).catch((e) => {
-            setPageError(e.response?.data.detail);
-        })
-    }
+    const d_uregister = useDebounce(u_register, 500);
 
     return (
         <main className={`flex flex-col min-h-screen items-center justify-start gap-8 p-24`}>
@@ -45,7 +29,39 @@ export default function Register() {
                     {pageError ? (<p className={errorStyle}>{pageError}</p>) : (<p className={errorStyle}></p>)}
                 </div>
 
-                <form onSubmit={handleSubmit(submit)}>
+                <form onSubmit={handleSubmit((data: UserRegisterSubmit) => {
+                    setPageError(null);
+                    d_uregister(data, {
+                        onSuccess: (response) => {
+                            let user_id = response.data.user_id;
+                            let token = response.data.token;
+                            Cookies.set(
+                                "user_id",
+                                user_id,
+                                {
+                                    // httpOnly: "true",
+                                    secure: process.env.NODE_ENV === "production",
+                                    path: '/',
+                                    expires: 60 * 60 * 24 * 7,
+                                });
+
+                            Cookies.set(
+                                "token",
+                                token,
+                                {
+                                    // httpOnly: "true",
+                                    secure: process.env.NODE_ENV === "production",
+                                    path: '/',
+                                    expires: 60 * 60 * 24 * 7,
+                                });
+                            router.push("/");
+                        },
+                        onFail: (e) => {
+                            const msg = getErrorMessage(e);
+                            window.alert(msg);
+                        }
+                    });
+                })}>
                     <div className={`flex flex-row gap-7`}>
                         <div className={`flex flex-col gap-3`}>
                             {/** Email Field */}

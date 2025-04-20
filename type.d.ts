@@ -1,28 +1,30 @@
 /**
- * @description Abstract types.
+ * @summary Callback function types.
+ * 
  */
-
-type SingleKeyObj<K extends string, V> = {
-    [key in K]: V;
-}
-
+/**
+ * @description Callbacks of requests.
+ */
 type RequestCallbacks<T> = {
-    onAuthFailCallback: (e: any) => void,
-    onSuccessCallback: (response: AxiosResponse<T>) => void,
-    onFailCallback: (e: any) => void
-}
-
-type TRequestItem = {
-    [key: string]: string
+    onSuccess: (response: AxiosResponse<T>) => void,
+    onFail: (e: any) => void
 };
 
+/**
+ * @description Callbacks of requests with authorization.
+ */
+type RequestCallbacksAuth<T> = {
+    onAuthFail: (e: any) => void
+} & RequestCallbacks<T>;
+
 
 /**
- * @description WebSocket related interfaces and types.
+ * @summary WebSocket related interfaces and types.
+ * 
  */
 
 /**
- * Basic type of websocket message.
+ * @description Basic type of websocket message.
  * @param timestamp The timestamp when the message 
  * starts being broadcasted from the server.
  */
@@ -31,7 +33,7 @@ interface WSMsg {
 };
 
 /**
- * WebSocket video frame message.
+ * @description WebSocket video frame message.
  * @param frameBase64 Base64 string of the video frame.
  */
 type WSVideoFrameMsg = WSMsg & {
@@ -39,7 +41,7 @@ type WSVideoFrameMsg = WSMsg & {
 };
 
 /**
- * WebSocket face announce message.
+ * @description WebSocket face announce message.
  * @param announced_face_frames List of the Base64 strings 
  * of the announced faces.
  */
@@ -48,7 +50,7 @@ type WSFaceAnnounceMsg = WSMsg & {
 };
 
 /**
- * WebSocket terminate message.
+ * @description WebSocket terminate message.
  * @param terminate A property flag to terminate video 
  * expecting in the frontend.
  */
@@ -57,12 +59,12 @@ type WSTerminateMsg = {
 };
 
 /**
- * All types of WebSocket Messages.
+ * @description Unified type of all of WebSocket Messages.
  */
 type WSMessages = WSVideoFrameMsg | WSFaceAnnounceMsg | WSTerminateMsg;
 
 /** 
- * @description User related types and interfaces.
+ * @summary Form submits, request bodies, request results and ORM objects for /user/ api.
  * 
  * │││││││││││
  * │      * *│
@@ -73,11 +75,14 @@ type WSMessages = WSVideoFrameMsg | WSFaceAnnounceMsg | WSTerminateMsg;
  */
 
 /**
- * A user ORM object.
- * @param user_id UUID string of the user.
- * @param created_at The time when the user is created.
- * @param email Email of the user.
- * @param name Name of the user.
+ * @description User Authorization.
+ */
+type WithUserId = {
+    user_id: string;
+}
+
+/**
+ * @description A basic user ORM object.
  */
 interface UserBasic {
     user_id: string,
@@ -87,41 +92,77 @@ interface UserBasic {
     permissions: number,
 };
 
-
+/**
+ * @description A super user ORM object.
+ */
 type UserSuper = UserBasic & {
     password_hash: string,
     is_verified: boolean,
 };
 
+/**
+ * @description Form submit of /user/get_users
+ */
 type UsersGetSubmit = {
     range_from: number,
     range_to: number,
 }
 
+/**
+ * @description Request body of /user/get_users
+ */
 type UsersGet = WithUserId & UsersGetSubmit;
 
+/**
+ * @description Result of /user/get_users
+ */
 interface UsersGetResult {
     num_total: number,
     num_this_page: number,
     users: UserSuper[],
 };
 
-type EmailVerifySuper = UserAuth & {
+/**
+ * @description Form submit of /user/verify_email_super
+ */
+type EmailVerifySuperSubmit = {
     verify_user_id: string,
 };
 
-type PermissionEdit = WithUserId & {
+/**
+ * @description Request body of /user/verify_email_super
+ */
+type EmailVerifySuper = WithUserId & EmailVerifySuperSubmit;
+
+/**
+ * @description Form submit of /user/edit_permission
+ */
+type PermissionEditSubmit = {
     grant: boolean,
     requester_user_id: string,
     permission: number
 };
 
+/**
+ * @description Request body of /user/edit_permission
+ */
+type PermissionEdit = WithUserId & PermissionEditSubmit;
+
+/**
+ * @description Form submit of /user/find_users/
+ */
 type UsersFindByNameSubmit = {
     query: string,
 };
 
+/**
+ * @description Request body of /user/find_users/
+ */
 type UsersFindByName = WithUserId & UsersFindByNameSubmit;
 
+/**
+ * @description Result of /user/find_users/
+ */
 type UsersFindResult = {
     users: UserSuper[],
 };
@@ -131,9 +172,15 @@ type UsersFindResult = {
  */
 
 /**
- * User login with email.
- * @param email
- * @param password
+ * @description Form submit of /user/login/
+ */
+type UserLoginSubmit = {
+    email_or_name: string,
+    password: string,
+};
+
+/**
+ * @description Request body (email) of /user/login/
  */
 type UserLoginWithEmail = {
     email: string,
@@ -141,9 +188,7 @@ type UserLoginWithEmail = {
 };
 
 /**
- * User login with (user) name.
- * @param name
- * @param password
+ * @description Request body (name) of /user/login/
  */
 type UserLoginWithName = {
     name: string,
@@ -151,16 +196,8 @@ type UserLoginWithName = {
 };
 
 /**
- * Raw data from form submission for user login.
- * User could be using either email or name.
- * @param email_or_name
- * @param password
+ * @description Result of /user/login
  */
-type UserLoginSubmit = {
-    email_or_name: string,
-    password: string,
-};
-
 type UserLoginResponse = {
     msg: string,
     user_id: string,
@@ -168,15 +205,8 @@ type UserLoginResponse = {
     token_type: string
 }
 
-/** 
- * @abstract Register User 
- */
-
 /**
- * User register in the system.
- * @param email
- * @param name
- * @param password
+ * @description Request body of /user/register/
  */
 interface UserRegister {
     email: string;
@@ -185,40 +215,17 @@ interface UserRegister {
 };
 
 /**
- * Raw data from form submission for user register.
- * Need password confirmation in the frontend.
- * @param passwordConfirm Password confirmation whose value needs 
- * to be identical as the one in the password field.
+ * @description Form submit of /user/register/
  */
-type UserRegisterSubmit = UserRegister & { passwordConfirm: string };
-
-/**
- * User Authorization 
- * @param user_id UUID string of the user.
- * @param token JWT token.
- */
-type UserAuth = {
-    user_id: string;
-    token: string;
-};
-
-type WithUserId = {
-    user_id: string;
-}
-
-// type UsersGet
+type UserRegisterSubmit = UserRegister & { passwordConfirm: string }; // (Only submit that's larger than request body.)
 
 
 /**
- * @description Face related types and interfaces.
+ * @summary Form submits, request bodies, request results and ORM objects for /face/ api.
  */
 
 /**
- * Face ORM Object.
- * @param id UUID string of the face.
- * @param description Description string of the face.
- * @param blob Base64 string of the face.
- * @param uploaded_at The time when the face is uploaded.
+ * @description Face ORM Object.
  */
 interface Face {
     id: string,
@@ -228,25 +235,20 @@ interface Face {
 };
 
 /**
- * Request body to retrieve a list of faces.
- * @param range_from Starting index of the expected list.
- * Doesn't work if the list is empty.
- * @param range_to Ending index of the expected list.
- * Doesn't work if the list is shorter than this index.
- * In this case, the entire list will be returned.
+ * @description Form submit of /face/get_faces/
  */
 type FacesGetSubmit = {
     range_from: number,
     range_to: number,
 }
 
+/**
+ * @description Request body of /face/get_faces/
+ */
 type FacesGet = WithUserId & FacesGetSubmit;
 
 /**
- * Response of faces retrieval.
- * @param num_total Number of faces in the database.
- * @param num_this_page Number of faces in this page.
- * @param faces List of faces, whose length is num_this_page.
+ * @description Result of /face/get_faces/
  */
 interface FacesGetResult {
     num_total: number,
@@ -255,9 +257,7 @@ interface FacesGetResult {
 };
 
 /**
- * Raw data of face upload request body.
- * @param blob DataURL (base64 with header) string of the face.
- * @param description Description string of the face.
+ * @description Form submit of /face/upload_face/
  */
 type FaceUploadSubmit = {
     blob: string,       // DataURL
@@ -265,29 +265,25 @@ type FaceUploadSubmit = {
 };
 
 /**
- * Face upload request body.
+ * @description Request body of /face/upload_face/
  */
 type FaceUpload = WithUserId & FaceUploadSubmit;
 
 
 /**
- * Raw data of the face compare request body.
- * @param blob DataURL (base64 with header) string of the face 
- * to be compared.
+ * @description Form submit of /face/compare_face/
  */
 type FaceCompareSubmit = {
     blob: string,
 };
 
 /**
- * Face compare request body.
+ * @description Request body of /face/upload_face/
  */
 type FaceCompare = WithUserId & FaceCompareSubmit;
 
 /**
- * Single response body of the face compare request.
- * @description The description of the compared face.
- * @score The score of this compare.
+ * @description Single response body of /face/compare_face/
  */
 interface FaceCompareResult {
     description: string,
@@ -295,9 +291,7 @@ interface FaceCompareResult {
 };
 
 /**
- * Response body of the face compare request.
- * @param desc_scores List of the single response body data.
- * @query_time The time cost of the query.
+ * @description Result of /face/compare_face/
  */
 interface FaceCompareResults {
     desc_scores: FaceCompareResult[],
@@ -305,9 +299,7 @@ interface FaceCompareResults {
 };
 
 /**
- * Raw data of the face update request body.
- * @param face_id UUID of the face to update.
- * @param description Updated description string of the face.
+ * @description Form submit of /face/update_face/
  */
 type FaceUpdateSubmit = {
     face_id: string,
@@ -315,28 +307,37 @@ type FaceUpdateSubmit = {
 };
 
 /**
- * Face update request body.
+ * @description Request body of /face/update_face/
  */
 type FaceUpdate = WithUserId & FaceUpdateSubmit;
 
 /**
- * Face delete request body.
- * @param face_id UUID of the face to delete.
+ * @description Form submit of /face/delete_face/
  */
-type FaceDelete = WithUserId & {
+type FaceDeleteSubmit = {
     face_id: string,
 };
 
 /**
- * Face find by description request body.
- * @param description Description.
+ * @description Request body of /face/delete_face/
+ */
+type FaceDelete = WithUserId & FaceDeleteSubmit;
+
+/**
+ * @description Form submit of /face/find_faces/
  */
 type FacesFindByDescSubmit = {
     query: string,
 }
 
+/**
+ * @description Request body of /face/find_faces/
+ */
 type FacesFindByDesc = WithUserId & FacesFindByDescSubmit;
 
+/**
+ * @description Result of /face/find_faces/
+ */
 type FacesFindResult = {
     faces: Face[],
 }
