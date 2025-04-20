@@ -2,17 +2,21 @@
 // Package
 import React, { useEffect, useState } from 'react';
 import { useRouter } from "next/router";
-import axios from 'axios';
+
+// UI
 import { IoMdArrowBack } from "react-icons/io";
 
 // Local
 import { _getUserAuth, guardPage } from '@/lib/auth';
+import { getUsers, findUsers, getErrorMessage } from '@/lib/server';
+import { useDebounce } from '@/lib/utils';
+
+// Local UI
 import { NavigationButton, Button } from '@/components/buttons';
 import { UserItem } from '@/components/ListItem';
 import { SearchBar } from '@/components/Inputs';
-import { getUsers, findUsers, _getErrorMessage } from '@/lib/server';
-import { useDebounce } from '@/lib/utils';
 
+// Styles
 const buttonStyle = `border rounded-md text-center hover:cursor-pointer select-none`;
 
 export default function ManageUsers() {
@@ -51,19 +55,19 @@ export default function ManageUsers() {
             range_from: range_from,
             range_to: range_to
         }, {
-            onAuthFailCallback: (e) => {
-                const message = _getErrorMessage(e);
+            onAuthFail: (e) => {
+                const message = getErrorMessage(e);
                 window.alert(message);
                 router.push("/");
             },
-            onSuccessCallback: (response) => {
+            onSuccess: (response) => {
                 const data: UsersGetResult = response.data;
                 setNumTotal(data.num_total);
                 setNumThisPage(data.num_this_page);
                 setUsers(data.users);
             },
-            onFailCallback: (e) => {
-                const message = _getErrorMessage(e);
+            onFail: (e) => {
+                const message = getErrorMessage(e);
                 window.alert(message);
             }
         });

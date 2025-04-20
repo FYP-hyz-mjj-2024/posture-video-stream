@@ -1,31 +1,16 @@
 "use client";
-
-import React, { useEffect, useState } from 'react';
-import { useForm, SubmitHandler } from 'react-hook-form';
+// Site Packages
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { useRouter } from "next/router";
-import axios, { AxiosResponse } from 'axios';
-// import { cookies } from 'next/headers';
+import { AxiosResponse } from 'axios';
 import Cookies from "js-cookie";
 
+// Locals
 import { login } from "@/lib/auth";
-import { _getErrorMessage } from '@/lib/server';
+import { getErrorMessage } from '@/lib/server';
 
-// type UserLoginWithEmail = {
-//     email: string,
-//     password: string,
-// }
-
-// type UserLoginWithName = {
-//     name: string,
-//     password: string
-// }
-
-// type UserLoginSubmit = {
-//     email_or_name: string,
-//     password: string,
-// }
-
-
+// Styles
 const inputFieldStyle = `flex flex-row w-84 p-2 rounded-lg border w-64 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600`;
 const errorStyle = `flex flex-row h-2 text-red-400 m-0 pl-1 text-sm`
 
@@ -33,30 +18,6 @@ export default function Login() {
     const router = useRouter();
     const { register, handleSubmit, watch, formState: { errors } } = useForm<UserLoginSubmit>();
     const [pageError, setPageError] = useState<string | null>(null);
-
-    function submit(userLoginSubmit: UserLoginSubmit) {
-
-        let { email_or_name, password } = userLoginSubmit;
-
-        let userLogin: UserLoginWithEmail | UserLoginWithName = {
-            password: password,
-            ...(email_or_name.indexOf('@') != -1) ? { email: email_or_name } : { name: email_or_name }
-        }
-
-        axios.post(
-            `${process.env.NEXT_PUBLIC_DB_DOMAIN}/user/login/`,
-            userLogin,
-            { withCredentials: true }
-        ).then((response) => {
-            let user_id = response.data.user_id;
-            let token = response.data.access_token;
-            localStorage.setItem("user_id", user_id);
-            localStorage.setItem("token", token);
-            router.push("/");
-        }).catch((e) => {
-            setPageError(e.response?.data.detail);
-        })
-    }
 
     return (
         <main className={`flex flex-col min-h-screen items-center justify-start gap-8 p-24`}>
@@ -69,8 +30,7 @@ export default function Login() {
                 <form onSubmit={handleSubmit((data) => {
                     setPageError(null);
                     login(data, {
-                        onAuthFailCallback: (e) => { },
-                        onSuccessCallback: (response: AxiosResponse<UserLoginResponse>) => {
+                        onSuccess: (response: AxiosResponse<UserLoginResponse>) => {
                             const user_id = response.data.user_id;
                             const token = response.data.access_token;
                             const token_type = response.data.token_type;
@@ -96,8 +56,8 @@ export default function Login() {
                                 });
                             router.push("/");
                         },
-                        onFailCallback: (e) => {
-                            const msg = _getErrorMessage(e);
+                        onFail: (e) => {
+                            const msg = getErrorMessage(e);
                             setPageError(msg);
                         }
                     });

@@ -1,20 +1,21 @@
 "use client"
-
+// Site Packages
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import axios from "axios";
+import { useRouter } from "next/router";
+import { useForm } from "react-hook-form";
 import Cookies from "js-cookie";
-
-import { useDebounce } from "@/lib/utils";
 import moment from "moment";
-import { IoMdTrash } from "react-icons/io";
+
+// UI
 import { AiFillEdit, } from "react-icons/ai";
 import { FaCheck, FaXmark } from "react-icons/fa6";
-import { useRouter } from "next/router";
-import { set, useForm } from "react-hook-form";
+import { IoMdTrash } from "react-icons/io";
 
+// Locals
+import { useDebounce } from "@/lib/utils";
 import { permissionNames, permissions } from "@/lib/auth";
-import { _getErrorMessage, deleteFace, editPermission, updateFace, verifyEmailSuper } from "@/lib/server";
+import { getErrorMessage, deleteFace, editPermission, updateFace, verifyEmailSuper } from "@/lib/server";
 import { checkFileTypeFromBase64 } from "@/lib/files";
 
 export const FaceItem = (props: { arrId: number, face: Face, faces: Face[], }) => {
@@ -48,14 +49,14 @@ export const FaceItem = (props: { arrId: number, face: Face, faces: Face[], }) =
         <form onSubmit={handleSubmit((data) => {
             setIsEditing(false);
             d_updateFace(data, {
-                onAuthFailCallback: (e) => {
-                    const message = _getErrorMessage(e);
+                onAuthFail: (e) => {
+                    const message = getErrorMessage(e);
                     window.alert(message);
                     router.push("/");
                 },
-                onSuccessCallback: (response) => { router.reload(); },
-                onFailCallback: (e) => {
-                    const message = _getErrorMessage(e);
+                onSuccess: (response) => { router.reload(); },
+                onFail: (e) => {
+                    const message = getErrorMessage(e);
                     window.alert(message);
                 }
             });
@@ -119,16 +120,19 @@ export const FaceItem = (props: { arrId: number, face: Face, faces: Face[], }) =
                             if (!window.confirm(`Are you sure to delete ${face.id}?`)) {
                                 return;
                             }
-                            d_deleteFace(face.id,
+                            d_deleteFace(
                                 {
-                                    onAuthFailCallback: (e) => {
-                                        const message = _getErrorMessage(e);
+                                    face_id: face.id
+                                },
+                                {
+                                    onAuthFail: (e) => {
+                                        const message = getErrorMessage(e);
                                         window.alert(message);
                                         router.push("/");
                                     },
-                                    onSuccessCallback: (response) => { router.reload(); },
-                                    onFailCallback: (e) => {
-                                        const message = _getErrorMessage(e);
+                                    onSuccess: (response) => { router.reload(); },
+                                    onFail: (e) => {
+                                        const message = getErrorMessage(e);
                                         window.alert(message);
                                     }
                                 }
@@ -197,17 +201,19 @@ export const UserItem = (props: { arrId: number, user: UserSuper, users: UserSup
                             <FaXmark className={`text-red-500 hover:cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-700`}
                                 onClick={() => {
                                     // console.log(user.user_id);
-                                    d_verifyEmailSuper(user.user_id, {
-                                        onAuthFailCallback: (e) => {
-                                            const message = _getErrorMessage(e);
+                                    d_verifyEmailSuper({
+                                        verify_user_id: user.user_id
+                                    }, {
+                                        onAuthFail: (e) => {
+                                            const message = getErrorMessage(e);
                                             window.alert(message);
                                             router.push("/");
                                         },
-                                        onSuccessCallback: (response) => {
+                                        onSuccess: (response) => {
                                             router.reload();
                                         },
-                                        onFailCallback: (e) => {
-                                            const message = _getErrorMessage(e);
+                                        onFail: (e) => {
+                                            const message = getErrorMessage(e);
                                             window.alert(message);
                                         }
                                     });
@@ -236,20 +242,22 @@ export const UserItem = (props: { arrId: number, user: UserSuper, users: UserSup
                                 const permissionInt = Number(permissionsList[id][1]);
                                 const grant = !Boolean(Number(bit));
                                 d_editPermission(
-                                    user.user_id,
-                                    permissionInt,
-                                    grant,
                                     {
-                                        onAuthFailCallback: (e) => {
-                                            const message = _getErrorMessage(e);
+                                        requester_user_id: user.user_id,
+                                        permission: permissionInt,
+                                        grant: grant,
+                                    },
+                                    {
+                                        onAuthFail: (e) => {
+                                            const message = getErrorMessage(e);
                                             window.alert(message);
                                             router.push("/");
                                         },
-                                        onSuccessCallback: (response) => {
+                                        onSuccess: (response) => {
                                             router.reload();
                                         },
-                                        onFailCallback: (e) => {
-                                            const message = _getErrorMessage(e);
+                                        onFail: (e) => {
+                                            const message = getErrorMessage(e);
                                             window.alert(message);
                                         }
                                     })

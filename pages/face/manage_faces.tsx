@@ -1,20 +1,24 @@
 "use client";
-// Package
+// Site Packages
 import React, { useEffect, useState } from 'react';
 import { useRouter } from "next/router";
-import axios from 'axios';
+
+// UI
 import { IoMdArrowBack, IoMdCloudUpload, IoIosGitCompare } from "react-icons/io";
 
 // Local
 import { _getUserAuth, guardPage } from '@/lib/auth';
+
+import { useDebounce } from '@/lib/utils';
+import { getErrorMessage, findFaces, getFaces } from '@/lib/server';
+import { checkFileTypeFromBase64 } from '@/lib/files';
+
+// Local UI
 import { NavigationButton, Button } from '@/components/buttons';
 import { FaceItem } from '@/components/ListItem';
 import { SearchBar } from '@/components/Inputs';
-import { useDebounce } from '@/lib/utils';
-import { _getErrorMessage, findFaces, getFaces } from '@/lib/server';
-import { checkFileTypeFromBase64 } from '@/lib/files';
 
-
+// Styles
 const buttonStyle = `border rounded-md text-center hover:cursor-pointer select-none`;
 
 export default function ManageFaces() {
@@ -53,19 +57,19 @@ export default function ManageFaces() {
             range_from: range_from,
             range_to: range_to
         }, {
-            onAuthFailCallback: (e) => {
-                const message = _getErrorMessage(e);
+            onAuthFail: (e) => {
+                const message = getErrorMessage(e);
                 window.alert(message);
                 router.push("/");
             },
-            onSuccessCallback: (response) => {
+            onSuccess: (response) => {
                 const data: FacesGetResult = response.data;
                 setNumTotal(data.num_total);
                 setNumThisPage(data.num_this_page);
                 setFaces(data.faces);
             },
-            onFailCallback: (e) => {
-                const message = _getErrorMessage(e);
+            onFail: (e) => {
+                const message = getErrorMessage(e);
                 window.alert(message);
             }
         })

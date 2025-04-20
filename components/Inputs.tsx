@@ -1,18 +1,17 @@
 "use client";
-// Basic
+// Site packages
 import { useRef, useEffect, useState } from "react";
 import { NextRouter } from "next/router";
 import Image from "next/image";
 import { UseFormSetValue, UseFormWatch } from "react-hook-form";
+
+// UI
 import { IconType } from "react-icons";
 import { FaMagnifyingGlass, FaCircleXmark } from 'react-icons/fa6';
-import { AxiosResponse } from "axios";
 
 // Local
 import { handleFileInputClick, handleFileInputDrop } from "@/lib/files";
-import { useDebounce } from "@/lib/utils";
-import { _getErrorMessage, findFaces } from "@/lib/server";
-import { checkFileTypeFromBase64 } from "@/lib/files";
+import { getErrorMessage } from "@/lib/server";
 
 /**
  * Image uploader that supports click and drag-and-drop (based on react-hook-form).
@@ -93,7 +92,7 @@ export const SearchBar = <TRequestItem, TResultItem,>(props: {
     router: NextRouter,
     searchFunc: (
         submitData: any,
-        callbacks: RequestCallbacks<TResultItem>
+        callbacks: RequestCallbacksAuth<TResultItem>
     ) => void,
     placeholder: string,
 }) => {
@@ -101,8 +100,6 @@ export const SearchBar = <TRequestItem, TResultItem,>(props: {
     const [isActive, setIsActive] = useState<boolean>(false);
     const [prompt, setPrompt] = useState<"Search!" | "Loading..." | "No result." | null>("Search!");
     const [resultItemList, setResultItemList] = useState<TResultItem[] | []>([]);
-
-    // const d_findFace = useDebounce(findFaces, 500);
 
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -170,16 +167,16 @@ export const SearchBar = <TRequestItem, TResultItem,>(props: {
                             query: event.target.value,
                         } as TRequestItem,
                         {
-                            onAuthFailCallback: (e) => {
-                                const message = _getErrorMessage(e);
+                            onAuthFail: (e) => {
+                                const message = getErrorMessage(e);
                                 window.alert(message);
                                 router.push("/");
                             },
-                            onSuccessCallback: (response) => {
+                            onSuccess: (response) => {
                                 setPrompt(null);
                                 setResultItemList(Object.values(response.data)[0] as TResultItem[]);
                             },
-                            onFailCallback: (e) => {
+                            onFail: (e) => {
                                 setPrompt("No result.");
                             }
                         }

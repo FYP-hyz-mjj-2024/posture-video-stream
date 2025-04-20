@@ -13,7 +13,7 @@ import { NavigationButton } from '@/components/buttons';
 import { IoMdArrowBack } from 'react-icons/io';
 import { ImageInput } from '@/components/Inputs';
 import { useDebounce } from '@/lib/utils';
-import { _getErrorMessage, compareFace } from '@/lib/server';
+import { getErrorMessage, compareFace } from '@/lib/server';
 
 export default function CompareFace() {
     const router = useRouter();
@@ -41,20 +41,20 @@ export default function CompareFace() {
                 setIsLoading(true);
                 setFaceCompareResults([]);
                 d_compareFace(data, {
-                    onAuthFailCallback: (e) => {
+                    onAuthFail: (e) => {
                         setIsLoading(false);
-                        const message = _getErrorMessage(e);
+                        const message = getErrorMessage(e);
                         window.alert(message);
                         router.push("/");
                     },
-                    onSuccessCallback: (response) => {
+                    onSuccess: (response) => {
                         setIsLoading(false);
                         const _faceCompareResults: FaceCompareResults = response.data;
                         setFaceCompareResults(_faceCompareResults.desc_scores.slice(0, 2));
                     },
-                    onFailCallback: (e) => {
+                    onFail: (e) => {
                         setIsLoading(false);
-                        const message = _getErrorMessage(e);
+                        const message = getErrorMessage(e);
                         window.alert(message);
                     },
                 });

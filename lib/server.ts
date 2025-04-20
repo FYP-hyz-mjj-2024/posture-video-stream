@@ -1,537 +1,196 @@
 // Site packages
-import axios, { AxiosError, AxiosResponse } from "axios";
+import axios, { AxiosError } from "axios";
 
 // Locals
 import { _compressImage, _dataURLtoFile, _fileToBase64 } from "./files";
 import { _getUserAuth } from "./auth";
 
-
-/**
- * Manual email verification by super user.
- * @param verifyUserId User id for email verification.
- * @param callbacks 
- * @returns 
- */
-export async function verifyEmailSuper(
-    verifyUserId: string,
-    callbacks: {
-        onAuthFailCallback: (e: any) => void,
-        onSuccessCallback: (response: AxiosResponse<any>) => void,
-        onFailCallback: (e: any) => void
-    }
-) {
-    const { user_id, token } = _getUserAuth();
-
-    if (!user_id || !token) {
-        callbacks.onAuthFailCallback({
-            localMessage: "Your login info is expired. Please re-login."
-        });
-        return;
-    }
-
-    const emailVerifySuper: EmailVerifySuper = {
-        user_id: user_id,
-        token: token,
-        verify_user_id: verifyUserId,
-    };
-
-
-    axios.post(
-        `${process.env.NEXT_PUBLIC_DB_DOMAIN}/user/verify_email_super/`,
-        emailVerifySuper
-    ).then((response) => {
-        if (!response) return;
-        callbacks.onSuccessCallback(response);
-    }).catch((e: AxiosError) => {
-        callbacks.onFailCallback(e);
-    })
-
-};
-
+const available_services = {
+    "user": [
+        "login",
+        "register",
+        "get_user",
+        "get_users",
+        "edit_permission",
+        "find_users",
+        "verify_email_super"
+    ],
+    "face": [
+        "get_faces",
+        "compare_face",
+        "upload_face",
+        "update_face",
+        "delete_face",
+        "find_faces"
+    ]
+} as const;
 
 
 /**
- * Retrieve users given a range.
- * @param usersGetSubmit The from-to index.
- * @returns If success, return a list of faces. Otherwise return null.
+ * @description A factory function that produces an async server function based on the required services.
+ * @param field A string specifying which field the service is.
+ * @param service A string specifying which service to request.
+ * @param asyncPreProcess An async function that pre-processes the form submit. e.g., file compress.
+ * @returns A product, i.e., an async server function.
  */
-export async function getUsers(
-    usersGetSubmit: UsersGetSubmit,
-    callbacks: {
-        onAuthFailCallback: (e: any) => void,
-        onSuccessCallback: (response: AxiosResponse<UsersGetResult>) => void,
-        onFailCallback: (e: any) => void
-    }
-) {
-    const { user_id, token } = _getUserAuth();
+export function serverFuncFactory<FormSubmitType, ResponseType>(
+    field: keyof typeof available_services,                                     // Factory param: Define api field.
+    service: (typeof available_services)[typeof field][number],                 // Factory param: Define api service.
+    asyncPreProcess: ((submit: FormSubmitType) => Promise<any>) | null = null   // Factory param: Define form submit pre-processing.
+): (
+    formSubmit: FormSubmitType,                     // Product param: Form submit object. Check @/type.d.ts
+    callbacks: RequestCallbacksAuth<ResponseType>   // Product param: Callbacks under different request responses.
+) => Promise<void> {
+    return async function (
+        formSubmit: FormSubmitType,
+        callbacks: RequestCallbacksAuth<ResponseType>
+    ): Promise<void> {
 
-    if (!user_id || !token) {
-        callbacks.onAuthFailCallback({
-            localMessage: "Your login info is expired. Please re-login."
-        });
-        return null;
-    }
+        // User authentication.
+        const { user_id, token } = _getUserAuth();
 
-    const usersGet: UsersGet = {
-        user_id: user_id,
-        ...usersGetSubmit
-    }
-
-    await axios.post(
-        `${process.env.NEXT_PUBLIC_DB_DOMAIN}/user/get_users/`,
-        usersGet,
-        {
-            headers: {
-                "Authorization": `Bearer ${token}`,
-            }
-        }
-    ).then((response) => {
-        if (!response) {
-            callbacks.onFailCallback("Response is empty.");
-            return null;
-        }
-        callbacks.onSuccessCallback(response);
-    }).catch((e: AxiosError) => {
-        callbacks.onFailCallback(e);
-    });
-
-}
-
-
-/**
- * Superuser function: Grant or revoke permission to non-super users. One at a time.
- * @param requester_user_id 
- * @param permission 
- * @param callbacks 
- */
-export async function editPermission(
-    requester_user_id: string,
-    permission: number,
-    grant: boolean,
-    callbacks: {
-        onAuthFailCallback: (e: any) => void,
-        onSuccessCallback: (response: AxiosResponse<any>) => void,
-        onFailCallback: (e: any) => void
-    }) {
-    const { user_id: operator_user_id, token } = _getUserAuth();
-
-    if (!operator_user_id || !token) {
-        callbacks.onAuthFailCallback({
-            localMessage: "Your login info is expired. Please re-login."
-        });
-        return;
-    }
-
-    const permissionEdit: PermissionEdit = {
-        user_id: operator_user_id,
-        grant: grant,
-        requester_user_id: requester_user_id,
-        permission: permission,
-    };
-
-    axios.post(
-        `${process.env.NEXT_PUBLIC_DB_DOMAIN}/user/edit_permission/`,
-        permissionEdit, {
-        headers: {
-            "Authorization": `Bearer ${token}`
-        }
-    }
-    ).then((response) => {
-        if (!response) return;
-        callbacks.onSuccessCallback(response);
-    }).catch((e) => {
-        callbacks.onFailCallback(e);
-    });
-
-}
-
-
-/**
- * Superuser function: Find a user in superuser's perspective.
- * @param faceFindByDescSubmit 
- * @param callbacks 
- * @returns 
- */
-export async function findUsers(
-    faceFindByDescSubmit: UsersFindByNameSubmit,
-    callbacks: {
-        onAuthFailCallback: (e: any) => void,
-        onSuccessCallback: (response: AxiosResponse<UsersFindResult>) => void,
-        onFailCallback: (e: any) => void
-    }
-) {
-
-    const { user_id, token } = _getUserAuth();
-
-    if (!user_id || !token) {
-        callbacks.onAuthFailCallback({
-            localMessage: "Your login info is expired. Please re-login."
-        });
-        return;
-    }
-
-    const usersFindByName: UsersFindByName = {
-        user_id: user_id,
-        query: faceFindByDescSubmit.query,
-    }
-
-    axios.post(
-        `${process.env.NEXT_PUBLIC_DB_DOMAIN}/user/find_users/`,
-        usersFindByName,
-        {
-            headers: {
-                "Authorization": `Bearer ${token}`,
-            }
-        }
-    ).then((response) => {
-        callbacks.onSuccessCallback(response);
-    }).catch((e) => {
-        callbacks.onFailCallback(e);
-    });
-}
-
-/**
- * Retrieve faces given a range.
- * @param facesGetSubmit User auth and face range.
- * @returns If success, return a list of faces. Otherwise return null.
- */
-export async function getFaces(
-    facesGetSubmit: FacesGetSubmit,
-    callbacks: {
-        onAuthFailCallback: (e: any) => void,
-        onSuccessCallback: (response: AxiosResponse<FacesGetResult>) => void,
-        onFailCallback: (e: any) => void
-    }
-) {
-
-    const { user_id, token } = _getUserAuth();
-
-    if (!user_id || !token) {
-        callbacks.onAuthFailCallback({
-            localMessage: "Your login info is expired. Please re-login."
-        });
-        return null;
-    }
-
-    const facesGet: FacesGet = {
-        user_id: user_id,
-        ...facesGetSubmit
-    }
-
-    await axios.post(
-        `${process.env.NEXT_PUBLIC_DB_DOMAIN}/face/get_faces/`,
-        facesGet,
-        {
-            headers: {
-                "Authorization": `Bearer ${token}`,
-            }
-        }
-    ).then((response) => {
-        if (!response) {
-            callbacks.onFailCallback("Response is empty.");
-            return null;
-        }
-        callbacks.onSuccessCallback(response);
-    }).catch((e: AxiosError) => {
-        callbacks.onFailCallback(e);
-    });
-
-    // return response.data;
-}
-
-
-/**
- * Upload a face, and get the comparasion result.
- * @param faceCompareSubmit Face upload submit data: user_id, token, blob.
- * @param callbacks
- * @returns 
- */
-export async function compareFace(
-    faceCompareSubmit: FaceCompareSubmit,
-    callbacks: {
-        onAuthFailCallback: (e: any) => void,
-        onSuccessCallback: (response: AxiosResponse<FaceCompareResults>) => void,
-        onFailCallback: (e: any) => void
-    }
-) {
-
-    const { user_id, token } = _getUserAuth();
-
-    if (!user_id || !token) {
-        callbacks.onAuthFailCallback({
-            localMessage: "Your login info is expired. Please re-login."
-        });
-        return;
-    }
-
-    // Remove the header of the base64 string.
-    if (!faceCompareSubmit.blob) {
-        callbacks.onFailCallback({
-            localMessage: "No file selected. Please at least select one file.",
-        });
-        return;
-    }
-
-    let blob: string;
-    try {
-        const options = {
-            maxSizeMB: 0.07,
-            useWebWorker: true,
-        };
-
-        blob = await _compressImage(faceCompareSubmit.blob, options);
-    } catch (e) {
-        callbacks.onFailCallback({
-            localMessage: "An error occurred during compression for upload_face."
-        });
-        return;
-    }
-
-    const faceCompare: FaceCompare = {
-        user_id: user_id,
-        blob: blob
-    };
-
-    // Upload.
-    axios.post(
-        `${process.env.NEXT_PUBLIC_DB_DOMAIN}/face/compare_face/`,
-        faceCompare,
-        {
-            headers: {
-                "Authorization": `Bearer ${token}`,
-            }
-        }
-    ).then((response) => {
-        if (!response) {
+        if (!user_id || !token) {
+            callbacks.onAuthFail({
+                localMessage: "Your login information is expired. Please re-login.",
+            });
             return;
         }
-        callbacks.onSuccessCallback(response);
-    }).catch((e: AxiosError) => {
-        callbacks.onFailCallback(e);
-    });
-}
 
+        // Pre-process form submit.
+        if (asyncPreProcess) {
+            formSubmit = await asyncPreProcess(formSubmit);
+        }
 
-/**
- * Upload face to store in the database.
- * @param faceUploadSubmit Face upload submit data: user_id, token, blob, description.
- * @param callbacks.onAuthFailCallback Callback when the user is not logged in.
- * @param callbacks.onSuccessCallback Callback when the upload is successful.
- * @param callbacks.onFailCallback Callback when the upload is failed.
- */
-export async function uploadFace(
-    faceUploadSubmit: FaceUploadSubmit,
-    callbacks: {
-        onAuthFailCallback: (e: any) => void,
-        onSuccessCallback: (response: AxiosResponse<FaceCompareResults>) => void,
-        onFailCallback: (e: any) => void
-    }
-) {
-    const { user_id, token } = _getUserAuth();
+        // Prepare request.
+        const requestBody: FormSubmitType & WithUserId = {
+            user_id: user_id,
+            ...formSubmit,
+        }
 
-    if (!user_id || !token) {
-        callbacks.onAuthFailCallback({
-            localMessage: "Your login info is expired. Please re-login."
-        });
-        return;
-    }
-
-    // Remove the header of the base64 string.
-    if (!faceUploadSubmit.blob) {
-        callbacks.onFailCallback({
-            localMessage: "No file selected. Please at least select one file.",
-        });
-        return;
-    }
-
-    let blob: string;
-    try {
-        const options = {
-            maxSizeMB: 0.07,
-            useWebWorker: true,
-        };
-
-        blob = await _compressImage(faceUploadSubmit.blob, options);
-    } catch (e) {
-        callbacks.onFailCallback({
-            localMessage: "An error occurred during compression for upload_face."
-        });
-        return;
-    }
-
-    const faceUpload: FaceUpload = {
-        user_id: user_id,
-        blob: blob,
-        description: faceUploadSubmit.description
-    };
-
-    // Upload.
-    axios.post(
-        `${process.env.NEXT_PUBLIC_DB_DOMAIN}/face/upload_face/`,
-        faceUpload,
-        {
+        const requestOptions = {
             headers: {
                 "Authorization": `Bearer ${token}`,
             }
         }
-    ).then((response) => {
-        if (!response) {
-            return;
-        }
-        callbacks.onSuccessCallback(response);
-    }).catch((e) => {
-        callbacks.onFailCallback(e);
-    });
-}
 
-/**
- * Update the information of a face.
- * @param faceUpdateSubmit Face update submit data: face_id, description.
- * @param callbacks
- * @returns 
- */
-export async function updateFace(
-    faceUpdateSubmit: FaceUpdateSubmit,
-    callbacks: {
-        onAuthFailCallback: (e: any) => void,
-        onSuccessCallback: (response: AxiosResponse<FaceCompareResults>) => void,
-        onFailCallback: (e: any) => void
-    }
-) {
-    const { user_id, token } = _getUserAuth();
-
-    if (!user_id || !token) {
-        callbacks.onAuthFailCallback({
-            localMessage: "Your login info is expired. Please re-login."
-        });
-        return;
-    }
-
-    const faceUpdate: FaceUpdate = {
-        user_id: user_id,
-        face_id: faceUpdateSubmit.face_id,
-        description: faceUpdateSubmit.description
-    };
-
-    axios.post(
-        `${process.env.NEXT_PUBLIC_DB_DOMAIN}/face/update_face/`,
-        faceUpdate,
-        {
-            headers: {
-                "Authorization": `Bearer ${token}`,
+        // Send request.
+        axios.post(
+            `${process.env.NEXT_PUBLIC_DB_DOMAIN}/${field}/${service}/`,
+            requestBody,
+            requestOptions
+        ).then((response) => {
+            if (!response) {
+                callbacks.onFail({ localMessage: "Response is empty." });
             }
-        }
-    ).then((response) => {
-        callbacks.onSuccessCallback(response);
-    }).catch((e) => {
-        callbacks.onFailCallback(e);
-    });
-}
-
-/**
- * Delete a face.
- * @param face_id Face id. 
- * @param callbacks
- * @returns 
- */
-export async function deleteFace(
-    face_id: string,
-    callbacks: {
-        onAuthFailCallback: (e: any) => void,
-        onSuccessCallback: (response: AxiosResponse<FaceCompareResults>) => void,
-        onFailCallback: (e: any) => void
-    }
-) {
-    const { user_id, token } = _getUserAuth();
-
-    if (!user_id || !token) {
-        callbacks.onAuthFailCallback({
-            localMessage: "Your login info is expired. Please re-login."
+            callbacks.onSuccess(response);
+        }).catch((e: AxiosError) => {
+            callbacks.onFail(e);
         });
-        return;
     }
-
-    const faceDelete: FaceDelete = {
-        user_id: user_id,
-        // token: token,
-        face_id: face_id
-    };
-
-    axios.post(
-        `${process.env.NEXT_PUBLIC_DB_DOMAIN}/face/delete_face/`,
-        faceDelete,
-        {
-            headers: {
-                "Authorization": `Bearer ${token}`,
-            }
-        }
-    ).then((response) => {
-        callbacks.onSuccessCallback(response);
-    }).catch((e) => {
-        callbacks.onFailCallback(e);
-    });
 }
 
 /**
- * Find a face.
- * @param findFaceByDescSubmit Face find by description submit data: description.
- * @param callbacks
- * @returns  
- * */
-export async function findFaces(
-    faceFindByDescSubmit: FacesFindByDescSubmit,
-    callbacks: {
-        onAuthFailCallback: (e: any) => void,
-        onSuccessCallback: (response: AxiosResponse<FacesFindResult>) => void,
-        onFailCallback: (e: any) => void
-    }
-) {
-    const { user_id, token } = _getUserAuth();
-
-    if (!user_id || !token) {
-        callbacks.onAuthFailCallback({
-            localMessage: "Your login info is expired. Please re-login."
-        });
-        return;
-    }
-
-    const faceFindDesc = {
-        user_id: user_id,
-        query: faceFindByDescSubmit.query,
-    }
-
-    axios.post(
-        `${process.env.NEXT_PUBLIC_DB_DOMAIN}/face/find_faces/`,
-        faceFindDesc,
-        {
-            headers: {
-                "Authorization": `Bearer ${token}`,
-            }
-        }
-    ).then((response) => {
-        callbacks.onSuccessCallback(response);
-    }).catch((e) => {
-        callbacks.onFailCallback(e);
-    });
-}
-
-
-/**
- * Get message from multiple possible error forms.
- * @param e 
- * @returns 
+ * @description Get message from multiple possible error forms.
+ * @param e Catched error.
+ * @returns The error message extracted.
  */
-export function _getErrorMessage(e: any) {
-    let message;
+export function getErrorMessage(e: any) {
+    let msg;
     if (e.localMessage) {
-        message = e.localMessage;
+        // Customized local error object.
+        msg = e.localMessage;
     }
     else if (e.response?.data.detail) {
-        message = e.response?.data.detail;
+        msg = e.response?.data.detail;
+    } else if (e.message) {
+        msg = e.message;
     }
     else {
-        message = "Unknown error occurred. Please try again."
+        msg = "Unknown error occurred. Please try again.";
+        console.error(e);
+    }
+    return msg;
+}
+
+/**
+ * @description A literal of async pre-processing over a form submit.
+ * @param submit A form submit object that contains blob.
+ * @returns The processed form submit.
+ */
+export async function compressFormSubmit(submit: { blob: string } & any): Promise<string> {
+    if (!submit.blob) {
+        throw new Error("No file selected. Please at least select one file.");
     }
 
-    return message;
+    let blob: string;
+
+    try {
+        const options = {
+            maxSizeMB: 0.07,
+            useWebWorker: true,
+        };
+        blob = await _compressImage(submit.blob, options);
+        submit.blob = blob;
+    } catch (e) {
+        throw new Error("An error occurred during compression for upload face.");
+    }
+
+    return submit;
 }
+
+/**
+ * @description Manual email verification by super user.
+ */
+export const verifyEmailSuper = serverFuncFactory<EmailVerifySuperSubmit, any>("user", "verify_email_super");
+
+/**
+ * @description Get user data using authentication detials: user_id and token.
+ */
+export const getUser = serverFuncFactory<{}, UserBasic>("user", "get_user");
+
+/**
+ * @description Retrieve users given a range.
+ */
+export const getUsers = serverFuncFactory<UsersGetSubmit, UsersGetResult>("user", "get_users");
+
+/**
+ * @description Superuser function: Grant or revoke permission to non-super users. One at a time.
+ */
+export const editPermission = serverFuncFactory<PermissionEditSubmit, any>("user", "edit_permission");
+
+/**
+ * @description Superuser function: Find a user in superuser's perspective.
+ */
+export const findUsers = serverFuncFactory<UsersFindByNameSubmit, UsersFindResult>("user", "find_users");
+
+/**
+ * @description Retrieve faces given a range.
+ */
+export const getFaces = serverFuncFactory<FacesGetSubmit, FacesGetResult>("face", "get_faces");
+
+/**
+ * @description Upload a face, and get the comparasion result.
+ */
+export const compareFace = serverFuncFactory<FaceCompareSubmit, FaceCompareResults>("face", "compare_face", compressFormSubmit);
+
+/**
+ * @description Upload face to store in the database.
+ */
+export const uploadFace = serverFuncFactory<FaceUploadSubmit, any>("face", "upload_face", compressFormSubmit);
+
+/**
+ * @description Update the information of a face.
+ */
+export const updateFace = serverFuncFactory<FaceUpdateSubmit, any>("face", "update_face");
+
+/**
+ * @description Delete a face.
+ */
+export const deleteFace = serverFuncFactory<FaceDeleteSubmit, any>("face", "delete_face");
+
+/**
+ * @description Blurry search faces.
+ * */
+export const findFaces = serverFuncFactory<FacesFindByDescSubmit, FacesFindResult>("face", "find_faces");
+
+
