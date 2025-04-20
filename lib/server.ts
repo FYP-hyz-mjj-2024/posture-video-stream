@@ -62,6 +62,7 @@ export function serverFuncFactory<FormSubmitType, ResponseType>(
                 formSubmit = await asyncPreProcess(formSubmit);
             } catch (e) {
                 callbacks.onFail(e);
+                return;
             }
         }
 
@@ -85,6 +86,7 @@ export function serverFuncFactory<FormSubmitType, ResponseType>(
         ).then((response) => {
             if (!response) {
                 callbacks.onFail({ localMessage: "Response is empty." });
+                return;
             }
             callbacks.onSuccess(response);
         }).catch((e: AxiosError) => {
@@ -137,7 +139,10 @@ export async function compressFormSubmit(submit: { blob: string } & any): Promis
         submit.blob = blob;
     } catch (e) {
         // Doesn't care about details. Just tell user the compress failed.
-        throw new Error("An error occurred during compression for upload face.");
+        console.error(e);
+        throw new Error(`Uncompressable file or file format. 
+It's recommended to use decent captured png/jpg photos,
+instead of octect-stream internet sources such as webp, WeChat, etc.`);
     }
 
     return submit;
