@@ -77,7 +77,7 @@ export function serverFuncFactory<FormSubmitType, ResponseType>(
                 "Authorization": `Bearer ${token}`,
             }
         }
-
+        
         // Send request.
         axios.post(
             `${process.env.NEXT_PUBLIC_DB_DOMAIN}/${field}/${service}/`,

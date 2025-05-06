@@ -37,3 +37,6 @@ next-env.d.ts
 
 # VSCode
 .vscode
+
+# Ignore tests
+tests

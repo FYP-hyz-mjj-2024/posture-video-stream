@@ -54,7 +54,8 @@ export default function Register() {
                                     path: '/',
                                     expires: 60 * 60 * 24 * 7,
                                 });
-                            router.push("/");
+                            window.alert(`Register successful. To login, please contact your supervisor to verify your entrance. Thank you!`);
+                            router.push("/user/login");
                         },
                         onFail: (e) => {
                             const msg = getErrorMessage(e);

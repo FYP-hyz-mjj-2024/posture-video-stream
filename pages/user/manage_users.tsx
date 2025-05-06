@@ -114,7 +114,7 @@ export default function ManageUsers() {
                 <div className={`flex flex-col justify-center`}>
                     {/** Title */}
                     <div className={`flex flex-row justify-between border border-ui-line dark:border-ui-line-dark bg-ui-area dark:bg-ui-area-dark rounded-tl-lg rounded-tr-lg px-4 py-3`}>
-                        <p className={`font-bold`}>{`${curPage * pageMaxNum + numThisPage} / ${numTotal} faces`}</p>
+                        <p className={`font-bold`}>{`${curPage * pageMaxNum + numThisPage} / ${numTotal} users`}</p>
                     </div>
 
                     {/** User List */}
