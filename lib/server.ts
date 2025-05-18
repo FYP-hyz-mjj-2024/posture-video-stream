@@ -13,7 +13,8 @@ const available_services = {
         "get_users",
         "edit_permission",
         "find_users",
-        "verify_email_super"
+        "verify_email_super",
+        "change_password"
     ],
     "face": [
         "get_faces",
@@ -172,6 +173,9 @@ export const editPermission = serverFuncFactory<PermissionEditSubmit, any>("user
  * @description Superuser function: Find a user in superuser's perspective.
  */
 export const findUsers = serverFuncFactory<UsersFindByNameSubmit, UsersFindResult>("user", "find_users");
+
+
+export const changePassword = serverFuncFactory<PasswordChangeSubmit, any>("user", "change_password");
 
 /**
  * @description Retrieve faces given a range.

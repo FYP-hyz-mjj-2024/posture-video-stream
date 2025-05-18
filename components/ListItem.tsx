@@ -10,12 +10,12 @@ import moment from "moment";
 // UI
 import { AiFillEdit, } from "react-icons/ai";
 import { FaCheck, FaXmark } from "react-icons/fa6";
-import { IoMdTrash } from "react-icons/io";
+import { IoMdTrash, IoMdKey } from "react-icons/io";
 
 // Locals
 import { useDebounce } from "@/lib/utils";
 import { permissionNames, permissions } from "@/lib/auth";
-import { getErrorMessage, deleteFace, editPermission, updateFace, verifyEmailSuper } from "@/lib/server";
+import { getErrorMessage, deleteFace, editPermission, updateFace, verifyEmailSuper, changePassword } from "@/lib/server";
 import { checkFileTypeFromBase64 } from "@/lib/files";
 
 export const FaceItem = (props: { arrId: number, face: Face, faces: Face[], }) => {
@@ -114,8 +114,8 @@ export const FaceItem = (props: { arrId: number, face: Face, faces: Face[], }) =
 
                     {/** Delete Button */}
                     <div className={`flex flex-row items-center justify-center w-[2em] h-[2em] 
-                             opacity-20 hover:opacity-100 rounded-full hover:cursor-pointer 
-                             hover:bg-black hover:text-white transition-all`}
+                            opacity-20 hover:opacity-100 rounded-full hover:cursor-pointer 
+                            hover:bg-black hover:text-white transition-all`}
                         onClick={() => {
                             if (!window.confirm(`Are you sure to delete ${face.id}?`)) {
                                 return;
@@ -165,27 +165,99 @@ export const UserItem = (props: { arrId: number, user: UserSuper, users: UserSup
     const permissionsList = Object.entries(permissions).reverse();
     const permissionNamesList = Object.entries(permissionNames).reverse();
 
+    const [isShowPasswordChange, setIsShowPasswordChange] = useState<boolean>(false);
+
+    const { register, setValue, handleSubmit, watch, formState: { errors } } = useForm<PasswordChangeSubmit>();
+
     return (
         <div className={
             `flex flex-row border-x border-b border-ui-line 
             dark:border-ui-line-dark px-4 py-3 justify-between
             ${arrId == users.length - 1 && `rounded-bl-lg rounded-br-lg`}`}>
-
-            {/** Face description and ID */}
+            {/** User description and ID */}
             <div>
-                <div className={`font-bold`}>
-                    {user.name}
+                <div className={`flex flex-row gap-2 items-center justify-start`}>
+                    <div className={`font-bold`}>
+                        {user.name}
+                    </div>
+                    {/** Change Password Field */}
+                    {isShowPasswordChange ? (
+                        <form onSubmit={handleSubmit((data) => {
+                            if (data.new_password == "") {
+                                window.alert("Password should not be empty.");
+                                return;
+                            }
+                            const thisUserId = Cookies.get("user_id");
+                            if (thisUserId == user.user_id &&
+                                !window.confirm(
+                                    "Are you sure you want to change your own password? You will be un-verified and need to seek other superuser's verification."
+                                )
+                            ) {
+                                return;
+                            }
+                            changePassword(data, {
+                                onSuccess: (response) => {
+                                    router.reload();
+                                },
+                                onAuthFail: (e) => {
+                                    const message = getErrorMessage(e);
+                                    window.alert(message);
+                                    router.push("/");
+                                },
+                                onFail: (e) => {
+                                    const message = getErrorMessage(e);
+                                    window.alert(message);
+                                }
+                            })
+                        })}
+                            className={`flex flex-row w-full`}>
+                            <div className={`flex flex-row items-center justify-between w-full gap-2`}>
+                                <input type={`hidden`} value={user.user_id} {...register("requester_user_id")} />
+                                <input
+                                    type="text"
+                                    className={`flex flex-row border border-black border-lg rounded-md
+                                        text-sm text-gray-400 max-h-5 max-w-32 px-2
+                                        overflow-hidden`}
+                                    {...register("new_password", {
+                                        required: true,
+                                        minLength: {
+                                            value: 6,
+                                            message: "New password must contain at least 6 characters."
+                                        }
+                                    })}
+                                    placeholder={`New Password`} />
+                                <input type={`submit`} className={`whitespace-nowrap`} value={`Change`} />
+                                <div 
+                                    className={`opacity-50 hover:cursor-pointer select-none`} 
+                                    onClick={() => { setIsShowPasswordChange(false); }}>{`Cancel`}</div>
+                            </div>
+                        </form>
+                    ) : (
+                        <div
+                            className={`hover:cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 
+                                rounded-lg px-1 py-1 transition-all`} 
+                            onClick={() => { setIsShowPasswordChange(true); }}>
+                            <IoMdKey />
+                        </div>
+                    )}
                 </div>
+
                 <div className={`text-sm max-lg:hidden text-gray-400 max-h-5 overflow-hidden`}>
                     {user.user_id}
                 </div>
                 <div className={`text-sm text-gray-400 max-h-5 overflow-hidden`}>
                     {moment(user.created_at).format("YYYY-MM-DD HH:mm:ss Z")}
                 </div>
+
+                {/** Change Password Error */}
+                <div className="text-red-500">{errors.new_password?.message}</div>
             </div>
 
+            {/** Verification status, permissions, etc. */}
             <div className={`flex flex-col items-end justify-center`}>
+                {/** Email, Verification */}
                 <div className={`flex flex-row items-center justify-center gap-2`}>
+                    {/** User Email */}
                     <div className={`flex flex-row items-left gap-2`}>
                         <span className={`align-baseline text-gray-300 dark:text-gray-400`}>
                             {user.email}
@@ -194,6 +266,8 @@ export const UserItem = (props: { arrId: number, user: UserSuper, users: UserSup
                             {`Verified: `}
                         </span>
                     </div>
+
+                    {/** User verification mark. */}
                     <div className={`flex flex-row items-center justify-center`}>
                         {user.is_verified ? (
                             <FaCheck className={`text-green-500`} />
@@ -221,8 +295,8 @@ export const UserItem = (props: { arrId: number, user: UserSuper, users: UserSup
                         )}
                     </div>
                 </div>
-
-                <div className={`flex flex-row gap-2`}>
+                {/** User Permission Row */}
+                <div className={`flex flex-row gap-2 max-sm:hidden`}>
                     {userPermissionsBinary.split("").map((bit, id) => (
                         <div
                             key={id}
@@ -238,7 +312,6 @@ export const UserItem = (props: { arrId: number, user: UserSuper, users: UserSup
                                 ) {
                                     return;
                                 }
-
                                 const permissionInt = Number(permissionsList[id][1]);
                                 const grant = !Boolean(Number(bit));
                                 d_editPermission(

@@ -220,6 +220,13 @@ interface UserRegister {
 type UserRegisterSubmit = UserRegister & { passwordConfirm: string }; // (Only submit that's larger than request body.)
 
 
+type PasswordChangeSubmit = {
+    requester_user_id: string;
+    new_password: string;
+};
+
+type PasswordChange = PasswordChangeSubmit & WithUserId;
+
 /**
  * @summary Form submits, request bodies, request results and ORM objects for /face/ api.
  */
