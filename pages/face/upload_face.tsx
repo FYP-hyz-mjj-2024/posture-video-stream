@@ -36,6 +36,7 @@ export default function UploadFace() {
 
     return (
         <main className={`flex flex-col min-h-screen items-center justify-start gap-8 p-24`}>
+            <title>Upload Face</title>
             <form onSubmit={handleSubmit((data) => {
                 setIsLoading(true);
                 d_uploadFace(data, {

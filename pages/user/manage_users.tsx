@@ -76,6 +76,7 @@ export default function ManageUsers() {
 
     return (
         <main className={`flex flex-col min-h-screen items-center justify-start gap-8 p-24`}>
+            <title>Manage Users</title>
             {/** Panel */}
             <div className={`flex flex-col bg-white dark:bg-gray-900 px-20 py-16 w-[80%] rounded-xl justify-center gap-2`}>
                 {/** Navigation Back */}
