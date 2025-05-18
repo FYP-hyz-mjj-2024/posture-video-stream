@@ -21,6 +21,7 @@ export default function Login() {
 
     return (
         <main className={`flex flex-col min-h-screen items-center justify-start gap-8 p-24`}>
+            <title>Login</title>
             <div className={`flex flex-col bg-white dark:bg-gray-900 px-20 pt-16 pb-10 rounded-xl gap-10`}>
                 <div className={`flex flex-col gap-1`}>
                     <p className={`text-3xl font-bold`}>{`Log In`}</p>
